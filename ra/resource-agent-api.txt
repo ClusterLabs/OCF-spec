@@ -98,7 +98,7 @@ Instance parameters are the attributes which describe a given resource
 instance. It is recommended that the implementor minimize the set of
 instance parameters.
 
-The meta-data allows the RA to flag one or more instance parameters as
+The meta data allows the RA to flag one or more instance parameters as
 'unique'. This is a hint to the RM or higher level configuration tools
 that the combination of these parameters must be unique to the given
 resource type.
@@ -134,7 +134,7 @@ The Resource Agents are located in subdirectories under
 The subdirectories allow the installation of multiple RAs for the same
 type, but from different vendors or package versions.
 
-TODO: As the resource type is also embedded in the metadata returned
+TODO: As the resource type is also embedded in the meta data returned
 from the RA, should this sentence go away and instead have the RM
 discover the installed resource types?
 
@@ -167,7 +167,7 @@ A RA must be able to perform the following actions on a given resource
 instance on request by the RM; additional actions may be supported by
 the script for example for LSB compliance.
 
-The actions are all required to be idem-potent. Invoking any operation
+The actions are all required to be idempotent. Invoking any operation
 twice - in particular, the start and stop actions - shall succeed and
 leave the resource instance in the requested state.
 
@@ -263,6 +263,9 @@ unsupported action the RA shall return an error as defined below.
   It is recommended that this action is not advertised unless it is
   advantageous to use when compared to a stop/start operation.
   
+  If this is not supported, it may be mapped to a stop/start action by
+  the RM.
+
 3.4.6. meta-data
 
   Mandatory.
@@ -286,6 +289,9 @@ environment; this has been chosen because it does not reveal the parameters to
 an unprivileged user on the same system and environment variables can be
 easily accessed by all programming languages and shell scripts.
 
+The entire environment variable name space starting with OCF_ is considered to
+be reserved for OCF use.
+
 
 3.5.1. Syntax for instance parameters
 
@@ -301,10 +307,7 @@ See section 4. for a more formal explanation of instance parameters.
 
 3.5.2. Global OCF attributes
 
-The entire environment variable name space starting with OCF_ is considered to
-be reserved. 
-
-Currently, the following additional parameters are defined:
+Currently, the following additional environment variables are defined:
 
 OCF_RA_VERSION_MAJOR
 OCF_RA_VERSION_MINOR
@@ -363,9 +366,7 @@ OCF_CHECK_LEVEL
 
 These exit status codes are the ones documented in the LSB 1.1.0
 specification, with additional explanations of how they shall be used by
-RAs.
-
-In general, all exit status codes except "0" shall indicate failure in
+RAs. In general, all non-zero status codes shall indicate failure in
 accordance to the best current practices.
 
 3.6.1. All operations but "status"
@@ -425,38 +426,23 @@ The RAs could however use the helper functions defined for LSB init scripts.
 
 5.1. Format
 
-We have the following requirements which are not fulfilled by the LSB way of
-embedding meta data into the beginning of the init scripts:
+The API has the following requirements which are not fulfilled by the
+LSB way of embedding meta data into the beginning of the init scripts:
 
 - Independent of the language the RA is actually written in,
 - Extensible,
 - Structured,
 - Easy to parse from a variety of languages.
 
-This is why we use simple XML to describe the RA meta data. The DTD for this
-API can be found at http://www.opencf.org/standards/ra-api-1.dtd.
+This is why the API uses simple XML to describe the RA meta data. The
+DTD for this API can be found at
+http://www.opencf.org/standards/ra-api-1.dtd.
 
 5.2. Semantics
 
-An example of a vs fully supported by the system.
+An example of a valid meta data output is provided in
+ra-metadata-example.xml.
 
-The API tries to make it possible to have RA function both as a normal LSB
-init script and a cluster-aware RA, but this is not required functionality.
-The RAs could however use the helper functions defined for LSB init scripts.
-
-
-5. RA meta data
-
-5.1. Format
-
-We have the following requirements which are not fulfilled by the LSB way of
-embedding meta data into the beginning of the init scripts:
-
-- Independent of the language the RA is actually written in,
-- Extensible,
-- Structured,
-- Easy to parse from a variety of languages.
-This is why we use simple XML to describe the RA meta data.
 
 C. To-do list
 
@@ -470,7 +456,7 @@ D. Contributors
 
 	James Bottomley <James.Bottomley@steeleye.com>
 	Greg Freemyer <freemyer@NorcrossGroup.com>
-	Simon Horms <horms@verge.net.au>
+	Simon Horman <horms@verge.net.au>
 	Ragnar Kjørstad <linux-ha@ragnark.vestdata.no>
 	Lars Marowsky-Brée <lmb@suse.de>
 	Alan Robertson <alanr@unix.sh>
