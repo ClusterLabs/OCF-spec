@@ -1,0 +1,47 @@
+<?xml version="1.0" ?>
+
+<!ELEMENT resource-agent (version,executable,provides?,parameters,actions) >
+<!ATTLIST resource-agent
+	name	CDATA	#REQUIRED>
+
+<!ELEMENT version (#PCDATA)>
+
+<!ELEMENT executable (#PCDATA)>
+
+<!ELEMENT provides (#PCDATA)>
+
+<!ELEMENT parameters (parameter*)>
+
+<!ELEMENT actions (action*)>
+
+<!ELEMENT parameter (longdesc+,shortdesc+,content,dependency?)>
+<!ATTLIST parameter
+	name	CDATA	#REQUIRED
+	resource-key	(1|0)	"0">
+
+<!ELEMENT longdesc ANY>
+<!ATTLIST longdesc
+	lang	NMTOKEN	#IMPLIED>
+
+<!ELEMENT shortdesc ANY>
+<!ATTLIST shortdesc
+	lang	NMTOKEN	#IMPLIED>
+
+<!ELEMENT content EMPTY>
+<!ATTLIST content
+	type	CDATA	#REQUIRED
+	format	CDATA	#IMPLIED
+	default CDATA	#IMPLIED>
+
+<!ELEMENT dependency EMPTY>
+<!ATTLIST dependency
+	type	CDATA	#REQUIRED>
+
+<!ELEMENT action EMPTY>
+<!ATTLIST action
+	name	(start|stop|restart|status|reload)	#REQUIRED
+	timeout		CDATA	#REQUIRED
+	tries		CDATA	#IMPLIED
+	interval 	CDATA	#IMPLIED
+	start-delay 	CDATA	#IMPLIED>
+
