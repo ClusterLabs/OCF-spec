@@ -134,12 +134,8 @@ The Resource Agents are located in subdirectories under
 The subdirectories allow the installation of multiple RAs for the same
 type, but from different vendors or package versions.
 
-TODO: As the resource type is also embedded in the meta data returned
-from the RA, should this sentence go away and instead have the RM
-discover the installed resource types?
-
-The filename within the directories map to the resource type name
-provided and may be a link to the real location.
+The filename within the directories equals the resource type name
+provided by the RA and may be a link to the real location.
 
 Example directory structure:
 	FailSafe -> FailSafe-1.1.0/
@@ -147,8 +143,10 @@ Example directory structure:
 	FailSafe-1.1.0/
 	heartbeat -> heartbeat-1.1.2/
 	heartbeat-1.1.2/
+	heartbeat-1.1.2/IPAddr
+	heartbeat-1.1.2/IP -> IPAddr
 
-How the RM choses an agent for a specific resource type from the
+How the RM choses an agent for a specific resource type name from the
 available set is implementation specific.
 
 
