@@ -63,11 +63,15 @@ typedef struct oc_member_uniqueid_s		oc_member_uniqueid_t;
 /*
  *	A few words about the oc_node_id_t:
  *
- *	An oc_node_id_t is assigned to a node when it first joins
- *	a cluster, and it will not change while that node is active
+ *	An oc_node_id_t is assigned to a node no later than when it first
+ *	joins a cluster, and it will not change while that node is active
  *	in some partition in the cluster.  It is normally expected to
  *	be assigned to a node, and not changed afterwards except by
  *	adminstrative intervention.
+ *
+ *	The mechanism for assigning oc_node_id_t's to nodes is outside the
+ *	scope of this specification.  The only basic operation which
+ *	can be performed on these objects is comparison.
  *
  *	See oc_cmp_node_id() for comparisons between them.
  */
@@ -88,6 +92,11 @@ typedef struct oc_member_uniqueid_s		oc_member_uniqueid_t;
  * repeat a value it had in the past.
  *
  * See oc_cmp_uniqueid() for comparing them.
+ *
+ * The meaning of the unode field is not defined by this specification.
+ * It may be the node_id of a node in the cluster or it may be a unique
+ * checksum or it may be some other value.  All that is specified is that
+ * it and the m_instance are unique when taken as a whole.
  */
 struct oc_member_uniqueid_s {
 	unsigned	m_instance;
@@ -115,6 +124,12 @@ extern "C" {
  *	Returns 0 for equal node_ids,
  *	negative for node id l less than node id r
  *	positive for node id l greater than node id r
+ *
+ *	No meaning may be ascribed to the fact that a particular
+ *	node id is greater or less than some other node id.
+ *	The comparison operator is provided primarily for
+ *	equality comparisons, and secondarily for use in
+ *	sorting them into a canonical order.
  */
 int	oc_cmp_node_id(oc_node_id_t l, oc_node_id_t r);
 
@@ -132,6 +147,11 @@ int oc_localnodeid(oc_node_id_t* us, oc_cluster_handle_t handle);
 /* (see oc_member_request_events() for more details) */
 oc_member_eventtype_t oc_member_etype(const void* edata, size_t esize);
 
+/*
+ * oc_member_uniqueid() returns the unique identifier associated
+ * with this membership event.  See the description in the typedef
+ * for more details.
+ */
 int oc_member_uniqueid(const void* edata, size_t esize,
 oc_member_uniqueid_t* u);
 /*
@@ -143,7 +163,7 @@ oc_member_uniqueid_t* u);
 
 /* How many nodes of each category do we have? */
 int oc_member_n_nodesjoined(const void* edata, size_t esize);
-int oc_member_n_nodesleft(void* edata, size_t esize);
+int oc_member_n_nodesgone(void* edata, size_t esize);
 int oc_member_n_nodesconst(void* edata, size_t esize);
 /*
  *	Failure of these functions return -1.
@@ -156,7 +176,7 @@ int oc_member_n_nodesconst(void* edata, size_t esize);
 
 /* What nodes of each category do we have? */
 oc_node_id_t* oc_member_nodesjoined(const void* edata, size_t esize);
-oc_node_id_t* oc_member_nodesleft(void* edata, size_t esize);
+oc_node_id_t* oc_member_nodesgone(void* edata, size_t esize);
 oc_node_id_t* oc_member_nodesconst(void* edata, size_t esize);
 /*
  *	Failure of these functions return NULL.
@@ -185,7 +205,10 @@ oc_node_id_t* oc_member_nodesconst(void* edata, size_t esize);
  * Setting OC_FULL_MEMBERSHIP or OC_INCR_MEMBERSHIP will result in the
  * delivery of a single OC_FULL_MEMBERSHIP event soon after making
  * this call.  Subsequent events will be delivered as received in the
- * requested style (incremental or full).
+ * requested style (incremental or full).  Because events may already
+ * be pending when this operation is issued, no guarantee can be made
+ * regarding when this triggered event will be delivered.
+ *
  */
 int oc_member_request_events(oc_member_eventtype_t etype, oc_ev_t token);
 /*
