@@ -1,20 +1,21 @@
 <?xml version="1.0" ?>
 
-<!ELEMENT resource-agent (version,executable,provides?,parameters,actions) >
+<!ELEMENT resource-agent (version,provides+,requires+,parameters,actions,special) >
 <!ATTLIST resource-agent
-	name	CDATA	#REQUIRED>
+	name	CDATA	#REQUIRED
+	version CDATA   #IMPLIED>
 
 <!ELEMENT version (#PCDATA)>
 
-<!ELEMENT executable (#PCDATA)>
-
 <!ELEMENT provides (#PCDATA)>
+
+<!ELEMENT requires (#PCDATA)>
 
 <!ELEMENT parameters (parameter*)>
 
 <!ELEMENT actions (action*)>
 
-<!ELEMENT parameter (longdesc+,shortdesc+,content,dependency?)>
+<!ELEMENT parameter (longdesc+,shortdesc+,content)>
 <!ATTLIST parameter
 	name	CDATA	#REQUIRED
 	resource-key	(1|0)	"0">
@@ -29,19 +30,18 @@
 
 <!ELEMENT content EMPTY>
 <!ATTLIST content
-	type	CDATA	#REQUIRED
-	format	CDATA	#IMPLIED
+	type	(string|integer|boolean)	#REQUIRED
 	default CDATA	#IMPLIED>
-
-<!ELEMENT dependency EMPTY>
-<!ATTLIST dependency
-	type	CDATA	#REQUIRED>
 
 <!ELEMENT action EMPTY>
 <!ATTLIST action
-	name	(start|stop|restart|status|reload)	#REQUIRED
+	name	(start|stop|restart|monitor|reload|meta-data|verify-all)	#REQUIRED
 	timeout		CDATA	#REQUIRED
-	tries		CDATA	#IMPLIED
 	interval 	CDATA	#IMPLIED
 	start-delay 	CDATA	#IMPLIED>
 
+<!ELEMENT special ANY>
+<!ATTLIST special
+	tag	CDATA	#REQUIRED>
+
+	
