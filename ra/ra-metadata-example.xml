@@ -1,19 +1,20 @@
 <?xml version="1.0"?>
-<!DOCTYPE resource-agent SYSTEM "http://www.opencf.org/standards/ra-ap-1.dtd">
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
 
 <!-- Root element: give the name of the Resource agent -->
-<resource-agent name="Filesystem">
+<resource-agent name="Filesystem" version="FailSafe 1.0.4">
 
 <!-- Version number of the standard this complies with -->
 <version>1.1</version>
 
-<!-- A full pathname to the RA executable -->
-<executable>/usr/ocf/sbin/filesystem"</executable>
-
 <!-- In addition to providing our own type, we might provide an abstract
-     class; this doesn't make much sense here; it is an optional element
-     and just included for completeness. -->
-<provides>Mountpoint</provides>
+     class in relation to the LSB-style dependency based ordering. 
+     
+     Could be listed multiple times each if more than one dependency exists.
+  -->
+<provides>Filesystem</provides>
+
+<requires>Blockdevice</requires>
  
 <!-- List all the instance parameters the RA supports or requires. -->
 <parameters>
@@ -32,17 +33,16 @@
      not required.
 -->
 <longdesc lang="en">
-The resource name is the directory where the filesystem will be actually mounted. 
-Please make sure it exists.
+The resource name is the directory where the filesystem will be actually
+mounted.  Please make sure it exists. 
 </longdesc>
 
 <!-- The shortdesc may be displayed by the resource manager as a tooltip or
      equivalent -->
 <shortdesc>Mountpoint</shortdesc>
 
-<!-- Further definition of the content; used by a GUI or something for
-     verifying user input. -->
-<content type="string" format="^/[:alnum:]+$" default="/mnt" />
+<!-- Further definition of the content -->
+<content type="string" default="/mnt" />
 
 </parameter>
 
@@ -53,12 +53,7 @@ device should be mounted; this will usually be similiar to /dev/sda1 or
 /dev/volumegroup/logicalvolume when using LVM.
 </longdesc>
 <shortdesc>Device to be mounted</shortdesc>
-<content type="string" format="^/dev/"/>
-<!-- This is a dependency on a "Blockdevice" resource; instead of specifying
-     the Device manually, the adminstrator could set the dependency and the
-     RM would provide the resource name of the dependency as the parameter
-     value. -->
-<dependency type="Blockdevice"/>
+<content type="string" default="/dev/"/>
 </parameter>
 
 <parameter name="FSType">
@@ -68,7 +63,7 @@ the filesystem remains consistent and that it can be mounted without an
 expensive fsck run; recommendations include reiserfs, ext3 and XFS.
 </longdesc>
 <shortdesc>Type of the filesystem</shortdesc>
-<content type="enum" format="reiserfs,ext2,ext3,jfs,xfs" default="reiserfs"/>
+<content type="string" default="reiserfs"/>
 </parameter>
 
 <parameter name="mount_options">
@@ -85,20 +80,32 @@ mount or something similar.
 
 <!-- List the actions supported by the RA -->
 <actions>
-<!-- Valid actions: start, stop, restart, status, reload
-     The timeout is given in seconds.
+<!-- Valid actions: start, stop, restart, status, reload, verify-all
+     
+     The timeout is given in seconds and should be a reasonable _hint_ to the
+     RM how long a certain action might take in the worst case. 
   -->
 <action name="start"   timeout="200" />
 <action name="stop"    timeout="100" />
-<!-- This is a mandatory action, but the RA suggests to the RM that
-     it doesn't make sense. -->
-<action name="restart" timeout="150" tries="0" />
-<action name="status"  timeout="60" interval="30" start-delay="50" />
-<!-- If the RA _does_ support the graceful reload of its configuration on
-     request, it should advertise the reload action here; this is an optional
-     element! -->
+<action name="restart" timeout="150" />
+<!-- In what intervals the RM should poll the RA for status; and how early
+     after the start of the RA is should start. Again, this are just
+     _defaults_ and can be overridden by the RM. -->
+<action name="monitor"  timeout="60" interval="30" start-delay="50" />
 <action name="reload"  timeout="60" />
+<action name="meta-data"  timeout="5" />
+<!-- As with all not mandatory actions, this one is only listed if supported
+  -->
+<action name="verify-all"  timeout="30" />
 
 </actions>
+
+<!-- Vendor specific attributes; as the content _inside_ the special tag is
+     obviously not covered by the RA-API DTD, it will not validate, but oh 
+     well...
+  -->
+<special tag="FailSafe">
+<Ordering>403</Ordering>
+</special>
 
 </resource-agent>
