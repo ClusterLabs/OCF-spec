@@ -1,885 +1,284 @@
 
 		CLUSTER EVENT NOTIFICATION API.
 
-		Draft version 0.3
+		Draft version pre-0.4
 
 1. Introduction
 
 	The Cluster Event Notification API defines an asynchronous
-	delivery framework for cluster events.  The event delivery
-	framework comprises:
-		(a) event delivery model
-		(b) the API to connect to the service
-		(c) the semantics of the API.
+	delivery framework for cluster events.  This document describes
+	the OCF Cluster Event Notification framework.
 
-	Cluster events are classified as:
-		(a) Connectivity events
-		(b) Membership events
-		(c) Group Messaging events.
+	The event service uses a publish/subscribe model, where one
+	or more publishers can post events that will be delivered to
+	all subscribers interested in (subscribed to) events about
+	certain topics.
 
-	An OCF compliant cluster implementation generates events for
-	the above event classes through this framework.  Each event
-	class defines specific events and their semantics.  This
-	document describes OCF Cluster Event Notification framework.
+	In this model, event data that passes through the event service
+	is opaque to the event service itself and only makes sense in
+	the context of a particular event topic.
 
+	Event topics are administratively created.  Some topics will
+	be pre-created to align with common architectural components
+	of a cluster.
 
-1.2  Scope
-
-	This document publishes an API for notification of cluster
-	events which is applicable to both a kernel implementation and a
-	user-level implementation of clusters.
-
-	This service is provided for the benefit of applications,
-	middleware and kernel components.
-
-	The event notification service should be provided on every node
-	in a cluster.  Each instance of the service is only expected to
-	deliver events locally.
-
-
-1.3  API version
-
-	This document currently describes version 0.3 of the API.
-
-	Revision History:
-	* August 13, 2002 - Draft 0.3
-		oc_ev_register() now returns file descriptor,
-		individual file descriptors per event class (or group),
-		dropped oc_ev_set_callback(),
-		dropped oc_ev_activate(),
-		renamed oc_ev_callback_done() to oc_ev_event_done(),
-		removed tokens - only fd is needed,
-		removed cookies - only data address is needed,
-		size and event descriptor now embedded in event data,
-		renamed m_instance to m_sequence in membership data,
-		updated examples to match new functions.
-
-	* June 05, 2002 - Draft 0.2
-		updated definitions,
-		clarifications for event delivery,
-		error handling improvements,
-		removed priority bands,
-		removed SIGNAL and NORETURN activation styles,
-		added membership event semantics.
-
-	* April 12, 2002 - Draft 0.1
-		describes general event delivery.
-
-	Individual contributors, ordered by last name:
-		Joe DiMartino <joe@osdl.org>
-		Mark Haverkamp <markh@osdl.org>
-		Daniel McNeil <daniel@osdl.org>
-		Ram Pai <linuxram@us.ibm.com>
-
-
-1.4   Definition of terms
-
-	A node is a whole computer running a single Operating System (OS)
-	instance.
-
-	A cluster is a type of parallel or distributed system that
-	consists of a collection of interconnected whole computers (nodes),
-	and is used as a single, unified computing resource. [Pfister]
-
-	A sub-cluster is a subset of the potential cluster membership,
-	such that all participants in a sub-cluster have agreed to be
-	temporarily bound to the same set of participants.  A node may
-	participate in at most one sub-cluster at a time.
-
-	A cluster partition (or simply partition) is caused by a
-	failure to communicate leaving some sub-clusters isolated
-	from others.
-
-	(XXX Add more definitions here?)
 
 2.  Overview
 
-	When significant or interesting events occur that change the
-	state of a cluster, this can directly or indirectly affect the
-	applications and services provided by the cluster.  Presented
-	here is an API that exposes cluster events and their semantics
-	in an architecture neutral way.
-
-	The Cluster Event Notification API defines a delivery framework
-	for cluster events and also defines specific event semantics
-	applicable to High Availability as well as High Performance
-	clusters.
-
-	The events are grouped into event classes to align with common
-	architectural components of a cluster.  This separation allows
-	applications and cluster software to interact with only the
-	desired or necessary cluster components to fulfill their duty.
-
-	(XXX Add generic cluster architecture here?)
-
-2.1   Requirements
-
-	General Event Service Requirements
-	----------------------------------
-	* implementation must be thread-safe
-	* cluster events are delivered in the same order on all nodes
-	* implementation can be kernel or user-level
-	* API as similar as possible for kernel and user-level
-	* separate events into classes
-	* subscribing to certain classes should be possible
-	* support for various event notification styles:
-		a. (async) select/poll
-		b. (async) signals [can be implemented via a.]
-		c. (sync) block until callback [can be implemented via a.]
-	* support for service shutdown notification
+	In the picture below, the cluster software components on the
+	left are responsible for generating events and subsequently
+	publishing these events to the event service for further
+	distribution to all subscribers.  A subscriber can be either
+	an individual application or a set of topic specific data
+	filters.
 
 
-	Connectivity Requirements
-	-------------------------
-	* list of known interfaces and health
-	* list of known nodes and current connection state
-
-		Connectivity Events
-		-------------------
-		* (local) comm interface added
-		* (local) comm interface failed
-		* node(s) added to cluster eligibility
-		* node(s) removed from cluster eligibility
-		* point-to-point connection established with new node
-		* point-to-point connection lost
-
-
-	Membership Requirements
-	-----------------------
-	* consensus list of members
-	* indication of relative age for members
-	* consistent view of membership for all member nodes
-
-		Membership Events
-		-----------------
-		* membership agreement reached
-			- to include new node(s)
-			- to drop node(s)
-		* membership agreement impossible due to communication loss
-		* communication restored after transient outage
-		* new membership does not include local node
+                      +--------------------------+
+                      |                          |
+                      V                          |
+        +----------------+       +-----------+   |
+        |                |------>|p         s|---+
+        | group comms    |------>|u         u|
+        |   +------------+       |b         b|------>  to subscribers
+        |   | +----------+       |l  event  s|------>  ....
+        |   | |membership|------>|i service c|
+        +---+ +----------+       |s         r|---------------+
+        +----------------+       |h         i|               |
+        |  connectivity  |------>|          b|---+           |
+        +----------------+       +-----------+   |           |
+                                                 |           |
+                                        ---------+           |
+                                        |                    |
+                                        V                    V
+                                  +------------+      +------------+
+                                  |connectivity|      | membership |
+                                  | event      |      | event      |
+                                  | filters    |      | filters    |
+                                  +------------+      +------------+
 
 
-	Group Messaging Requirement
-	---------------------------
-	*** <coming soon>
-
-		Group Messaging Events
-		----------------------
-		* join
-		* leave
-		* {broad,multi,uni}cast received
-		* reply received
+	Data passing through the event service is opaque to the event
+	service.
 
 
-2.2   Environmental assumptions
+3.  Event delivery API
 
-	Cluster software can be implemented entirely in user-level or
-	entirely in the kernel, or may have both kernel and user-level
-	components.
-
-	An OCF compliant cluster implementation must provide:
-	(a)  a header file called /usr/include/ocf/oc_event.h
-	(b)  a library named /usr/lib/lib_oc_event.so
-	(c)  the library must contain the relocatable symbol definitions
-	     defined in this API.
-
-	To be OCF kernel compliant, a kernel implementation must also
-	provide a kernel module that supplies all of the functions
-	defined in the API section of this document except for those
-	listed specifically as not needed for a kernel implementation.
-	(eg. oc_ev_handle_event()).
-
-
-2.3   Event Delivery model
-
-	The cluster event notification service supports asynchronous
-	delivery of cluster events to registered callback functions.
-	The events are grouped into event classes which represent
-	various components of a cluster architecture.
-
-	Callback functions are supplied during the registration process.
-	A separate registration is required to enable notification in
-	each event class of interest.
-
-	Each event has a unique event descriptor, regardless of the
-	event class.  Therefore, the same function could be used to
-	handle events for all event classes.  A more common usage would
-	be separate functions for each event class.
-
-	Cluster-wide events will be delivered in cluster-wide order to
-	all registered callback functions on all nodes.  All functions
-	registered for callbacks in a given class will be called exactly
-	once for each event.
-
-	A user-level process determines that an event is pending using
-	select/poll on the supplied file descriptor.  When an event is
-	pending, control is passed to the event notification service
-	which delivers the event in the context of the calling process.
-
-	All kernel callbacks will be performed in a process context
-	supplied by a kernel compliant event notification service.
-
-	When callback processing is complete, the event notification
-	service must be informed.  Subsequent events will only be
-	delivered after callback completion for the preceding event.
-
-
-3.  Event delivery API and semantics
-
-	This section explains the API for cluster event notification
+	This section describes the API for cluster event notification
 	service.  Unless otherwise specified, errors are indicated by
 	non-zero return values.  Errors with specific meanings are
 	listed below.  Common errors are listed here once for brevity.
 
-		EPERM	need suitable privileges to register
+		EPERM	need suitable privileges to subscribe
 
 		ENOMEM	insufficient memory to complete request
 
 
-3.1 Event service registration
+3.0  Event Message Format
 
-	This is the initial call to register for cluster event
-	notification service.  Callers receive a file descriptor that
-	is suitable for poll or select at user-level (or simply a
-	token for kernel-level).  The file descriptor is used to
-	identify a particular registration when passed into subsequent
-	event service calls.  Failure returns a -1 and sets errno.
+	All events share a common message format that includes an
+	event header, some event properties and the actual event data.
 
-	Event notification is performed through callbacks.  Events are
-	delivered only for those event classes in which a callback has
-	been registered.  The callback function is supplied as the
-	second argument to oc_ev_register().  A callback is delivered
-	when an event in the corresponding event class occurs.
+	Although each event topic uses its own data format, each supply
+	a common event header that describes the event.  These are the
+	components of an oc_ev_event_t.
 
-	A separate registration is required to enable notification in
-	each event class of interest.
+	An Event Message:
+		size	int32	size in bytes of this event message,
+				including the event header, and all
+				event data
 
-		int oc_ev_register(char *class, const oc_ev_callback_t *fn);
+		offset	int32	the offset in bytes from the beginning
+				of the event message to the event data
 
-		class	the event class to associate with 'fn'
+		ev_id	int32	event id
 
-		fn      is the callback function (see description below)
+		re_id	int32	reference id that links this message to
+				a particular event id
 
-		Specific errno values:
-			EINVAL	specified event class is invalid
+		seq	int32	sequence number for this message in
+				this topic
 
+		topic	string	the topic name for reference
 
-	The definition of a callback function is:
+		<<<XXX add other header fields here>>>
 
-		typedef oc_ev_callback_t void fn(const oc_ev_data_t *data);
+		data	bytes	topic specific data, format specified
+				externally
 
-		data	returned data varies based on the event class.
-			This data is valid until oc_ev_event_done()
-			is called.
-
-	Each event class has a corresponding data format.  All events
-	in a given class supply data in the appropriate format.
-
-	Although each event class uses its own data format, each supply
-	a common data header that specifies the size and the event
-	descriptor.
-
-		size	size in bytes of allocated 'data' including
-			the size and event descriptor (data header)
-
-		event	an event descriptor that is unique for all
-			events across all event classes
+	Each event topic has a corresponding data format.  All events
+	in a given topic supply data in the appropriate format.
 
 
-3.2 Event service termination
+3.1  Event service subscription
 
-	Event service will terminate after calling oc_ev_unregister().
-	This routine can be safely called from a callback routine.
-	Pending events may be dropped at the discretion of the cluster
-	implementation.
+SYNOPSIS
+	int oc_ev_subscribe(char *topic, const oc_ev_on_event_t *fn);
 
-	Upon successful return, no further events will be delivered.
-	If called from a callback routine, cleanup occurs after callback
+	topic	the topic to associate with 'fn'
+
+	fn	is the on_event function (see description below).
+		If NULL, must use oc_ev_get_event().
+
+	Specific errno values:
+		EINVAL	specified topic is invalid
+
+
+DESCRIPTION
+	This is the initial call to subscribe for notification of
+	events in any topic.  A separate subscription is required
+	to enable notification for events in each topic of interest.
+	Multiple topics can be active at the same time.  Any limit
+	on concurrent open topics is imposed by an implementation,
+	not by this specification.
+
+	Events are delivered only for event topics with an active
+	subscription.  A subscription can be termintated at any time
+	[see oc_ev_unsubscribe()].
+
+	A process can choose between two event delivery mechanisms.
+	When an "on_event" function is supplied, an asynchronous
+	callback method will be used.  When the "on_event" function
+	is NULL, a subscriber is responsible for fetching events on
+	their own [see oc_ev_get_event()].
+
+	Upon success, callers receive an event descriptor that must
+	be passed into subsequent event service calls.  At user-level,
+	the event descriptor can be converted into a file descriptor
+	suitable for poll or select [see oc_ev_get_fd()].
+
+	Failure returns a -1 and sets errno.
+
+
+3.1.1  on_event Callback Function
+
+SYNOPSIS
+	typedef oc_ev_on_event_t void fn(const oc_ev_event_t *event);
+
+	event	The event data varies based on the event topic.
+		Events are allocated by the event service and are
+		valid until oc_ev_event_done() is called.  Delivery
+		of subsequent events may be inhibited while another
+		event is outstanding.
+
+DESCRIPTION
+	An on_event function is optionally passed into oc_ev_subscribe()
+	to indicate the use of an automatic callback.
+
+
+
+3.2  Event service termination
+
+SYNOPSIS
+	int oc_ev_unsubscribe(int ed);
+
+	ed	is the event service descriptor obtained
+		from call to oc_ev_subscribe().
+
+	Specific errors:
+		EINVAL	ed not recognized by event service
+
+DESCRIPTION
+	Calling oc_ev_unsubscribe() will cancel the subscription to
+	for this event descriptor.  This routine can be safely called
+	from an on_event routine.
+
+	Upon successful return, no further events will be delivered.  If
+	called from an on_event routine, cleanup occurs after on_event
 	completion is indicated by a call to oc_ev_event_done().
 
-		int oc_ev_unregister(int fd);
 
-		fd	is the event service file descriptor obtained
-			from call to oc_ev_register().
+3.3  Converting an event descriptor to a file descriptor
 
-		Specific errors:
-			EINVAL	fd not recognized by event service
+SYNOPSIS
+	int oc_ev_get_fd(int ed);
+
+	ed	is the event service descriptor obtained
+		from call to oc_ev_subscribe().
+
+	Specific errors:
+		EINVAL	ed not recognized by event service
+
+DESCRIPTION
+	When a select/poll is required, an event descriptor can be
+	converted into a file descriptor.
 
 
-3.4  Transfer of Control
+3.4  Automatic Event Delivery
 
-	A user-level process determines that an event is pending using
-	select/poll on the file descriptor returned by oc_ev_register().
-	A callback will deliver the event in the context of this process
-	after calling oc_ev_handle_event().
+SYNOPSIS
+	int oc_ev_handle_events(void);
+
+	Specific errors:
+		ENOENT	on_event function not specified
+
+DESCRIPTION
+	After subscribing with on_event functions to all desired topics,
+	this function will pass control of the calling thread to the
+	event service.  The event service will monitor the subscribed
+	event topics and call the appropriate on_event function.
+
+	This function will return when there are no more subscribed topics.
 
 	NOTE: This function does nothing for kernel clients.
 
-		int oc_ev_handle_event(int fd);
 
-		fd	is the event service file descriptor obtained
-			from call to oc_ev_register().
+3.5  Manual Event Extraction
 
-		Specific errors:
-			EINVAL	fd not recognized by event service
+SYNOPSIS
+	oc_ev_event_t *oc_ev_get_event(int ed, int timeout);
+
+	ed	is the event service descriptor obtained
+		from call to oc_ev_subscribe().
+
+	timeout	time to wait (in milliseconds) for a new event
+		to arrive.  If the timeout value is negative,
+		oc_ev_get_event() will wait forever for a new
+		event.
+
+	Specific errors:
+		EINVAL	ed not recognized by event service
+
+		EEXIST	an on_event function was specified
+
+DESCRIPTION
+	As an alternative to using the on_event callback method of
+	event delivery, a subscriber may extract events at their
+	leisure.  A user-level process determines that an event is
+	pending using select/poll on the file descriptor acquired by
+	oc_ev_get_fd().
+
+	If no event is pending
 
 
-3.5  Callback Completion
+3.6  Event Completion
 
+SYNOPSIS
+	int oc_ev_event_done(const oc_ev_event_t *event);
+
+	event	the event message address passed to an on_event
+		callback function or returned from oc_ev_get_event().
+
+	Specific errors:
+		EINVAL	address not recognized by event service
+
+DESCRIPTION
 	It is necessary to inform the notification service that callback
 	processing is complete for each event.  Upon successful return,
 	any data associated with this completed callback is no longer
 	valid.
 
-		int oc_ev_event_done(const oc_ev_data_t *data);
 
-		data	the data address passed to a registered
-			callback function.  This address must be
-			returned when callback action has completed.
+3.7  Version number
 
-		Specific errors:
-			EINVAL	address not recognized by event service
+SYNOPSIS
+	int oc_ev_get_version(oc_ver_t *ver);
 
+	ver	the version number of the service.
 
-3.6  Version number
+	Specific errors:
 
+DESCRIPTION
 	This is a synchronous call to return the event notification
 	service version number.  It is safe to call anytime.
 	(XXX what is an oc_ver_t - i.e., what does version data look like?)
-
-		int oc_ev_get_version(oc_ver_t *ver);
-
-		ver	the version number of the service.
-
-		Specific errors:
-			EINVAL	token not recognized by event service
-
-
-3.7  Local Node Determination
-
-	This is a synchronous call to determine the local node identifier.
-
-		int oc_ev_is_my_nodeid(int fd, const oc_node_t *node);
-
-		fd	is the event service file descriptor obtained
-			from call to oc_ev_register().
-
-		node	pointer to a node structure
-
-		Specific errors:
-			EINVAL	fd not recognized by event service
-
-
-4.   Event Classes and Events
-
-4.1  Data Structures
-
-
-	/*
-	 * oc_event_t is the event descriptor for a callback event.
-	 * An event descriptor is unique for all events across all
-	 * event classes.  A descriptor is separated into two portions
-	 * for Class and Event (see below).
-	 */
-	typedef uint32_t oc_event_t;
-
-	/*
-	 * Event descriptors:
-	 *	upper 10 bits for Class
-	 *	lower 22 bits for Event
-	 */
-	#define OC_EV_CLASS_SHIFT	22
-	#define OC_EV_EVENT_SHIFT	10
-	#define	OC_EV_EVENT_MASK	(~ ((uint)~0 << OC_EV_CLASS_SHIFT))
-
-	#define	OC_EV_GET_CLASS(ed)	((unit)(ed) >> OC_EV_CLASS_SHIFT)
-	#define	OC_EV_GET_EVENT(ed)	((unit)(ed) & OC_EV_EVENT_MASK)
-	#define	OC_EV_SET_CLASS(cl,ev)	(cl << OC_EV_CLASS_SHIFT | \
-					(ev & OC_EV_EVENT_MASK))
-
-	/*
-	 * The register function uses a string to determine the event
-	 * class.  Pre-defined strings for the membership and
-	 * connectivity classes should not conflict with a user
-	 * specified group name.
-	 */
-	#define S_OC_EV_CONN_CLASS "__OC_EV_CONN_CLASS"
-	#define S_OC_EV_MEMB_CLASS "__OC_EV_MEMB_CLASS"
-
-	/*
-	 * The enums are used to construct unique event descriptors.
-	 */
-	typedef enum {
-		OC_EV_CONN_CLASS = 1,	/* Connectivity Event Class */
-		OC_EV_MEMB_CLASS,	/* Node Membership Event Class */
-		OC_EV_GROUP_CLASS	/* Group Messaging Event Class */
-	} oc_ev_class_t;
-
-
-	/*
-	 * The common event data header contains:
-	 *
-	 *	e_size		the total size in bytes of the data returned
-	 *			including size and event.
-	 *
-	 *	e_event		an event descriptor.
-	 */
-	typedef struct {
-		size_t		e_size;		/* size (bytes) includes hdr */
-		oc_ed_t		e_event;	/* event descriptor */
-	} oc_ev_data_t;
-
-
-	/*
-	 * node_id	is the node identifier, which contains an
-	 *		implementation specific value.  Each node must
-	 *		have a unique 'node_id'.
-	 *
-	 * node_born_on	is the membership sequence number in which the
-	 *		node became an active cluster member.
-	 */
-	oc_node_t structure is defined as follows:
-	typedef struct {
-		uint	node_id;	/* cluster-wide unique */
-		uint	node_born_on;	/* member since sequence number */
-	} oc_node_t
-
-
-4.2  Connectivity Events
-
-	A connectivity component of cluster software is responsible
-	for establishing and maintaining virtual circuits between
-	cooperating cluster nodes.  This includes managing multiple
-	network interfaces and the redundant connections to peer
-	connectivity components, as well as providing basic network
-	communication services for other cluster components.
-
-	Connectivity events are generated to alert external observers
-	that some change in communication has transpired.  An external
-	observer could be anything from a monitoring application to the
-	membership component of this cluster.
-
-
-	/*
-	 * Connectivity Events
-	 */
-	typedef enum {
-		OC_EV_MS_INVALID = OC_EV_SET_CLASS(OC_EV_CONN_CLASS, 0),
-		OC_EV_CS_INTERFACE,
-		OC_EV_CS_ELIGIBLE,
-		OC_EV_CS_CONNECT,
-		...
-	} oc_conn_event_t;
-
-	/*
-	 * Connectivity event specific data
-	 */
-	typedef struct {
-		oc_ev_data_t	data_hdr;	/* common data header */
-		...		c_...;		/* not defined yet */
-	} oc_ev_connectivity_t;
-
-	(XXX Add connectivity semantics text here.)
-
-
-4.3   Node Membership Events
-
-	The node membership component of cluster software is responsible
-	for determining cluster membership.
-
-	Membership events are generated to alert external observers that
-	some change has occurred in the agreed upon cluster membership,
-	or that there was a change in the ability to reach membership
-	agreement.  When new members are added to or existing members
-	removed from the agreed membership, an event will be generated
-	to describe the new membership.  No events will be generated
-	for failed membership proposals.
-
-
-	/*
-	 * Node Membership Events
-	 */
-	typedef enum {
-		OC_EV_MS_INVALID = OC_EV_SET_CLASS(OC_EV_MEMB_CLASS, 0),
-		OC_EV_MS_NEW_MEMBERSHIP,
-		OC_EV_MS_NOT_PRIMARY,
-		OC_EV_MS_PRIMARY_RESTORED,
-		OC_EV_MS_EVICTED
-	} oc_memb_event_t;
-
-
-	Membership Events:
-	-----------------
-
-	OC_EV_MS_NEW_MEMBERSHIP is delivered to nodes in the primary
-	sub-cluster (active node membership) when a membership change
-	occurs.
-
-	OC_EV_MS_NOT_PRIMARY is delivered to nodes when membership
-	agreement is no longer possible and this node can not
-	accurately determine if it is part of the primary sub-cluster
-	(active node membership).  For example, this event might be
-	delivered in a HiAv cluster to nodes that have lost quorum.
-
-	OC_EV_MS_PRIMARY_RESTORED is delivered when connectivity is
-	restored after a transient outage and membership returns to the
-	exact same state as it was before the OC_EV_NOT_PRIMARY event.
-
-	OC_EV_MS_EVICTED is delivered when connectivity is restored and
-	a new primary sub-cluster (active node membership) has been
-	accepted elsewhere in the cluster which no longer includes the
-	local node.  If delivered, this will be the last event delivered
-	to the called function, and membership notification service
-	terminates.
-
-	Applications are not expected to gracefully recover from this
-	event.  Usually, there is too much invalid or stale state
-	that must be flushed.
-
-	An implementation may choose to handle eviction in its own
-	way, and NOT deliver this event.  Most implementations will
-	reboot or be killed by their peers.  Delivery of this event
-	is optional for implementations that handle eviction by
-	alternate means, such as STONITH...
-
-	NOTE: no attempt has been made to allow re-connection of
-	an evicted member node.
-
-
-	Node membership events are delivered using the registered
-	function for OC_EV_MEMB_CLASS Node Membership Events.  For
-	OC_EV_MEMBER_CLASS events, 'data' can be cast into a
-	oc_ev_membership_t pointer.  This data is valid until
-	oc_ev_event_done() is called.
-
-	/*
-	 * (node) Membership event specific data
-	 */
-	typedef struct {
-		oc_ev_data_t	data_hdr;	/* common data header */
-
-		uint	m_sequence;	/* current membership sequence # */
-
-		uint	m_n_member;	/* # of current members */
-		uint	m_memb_idx;	/* index into m_array for members */
-
-		uint	m_n_out;	/* # of previous members lost */
-		uint	m_out_idx;	/* index into m_array for lost */
-
-		uint	m_n_in;		/* # of new members */
-		uint	m_in_idx;	/* index into m_array for new */
-
-		oc_node_t m_array[1];	/* array of members (see above) */
-	} oc_ev_membership_t;
-
-
-	'data' semantics:
-
-	The implementation allocates memory for 'data' before the
-	callback is made.  This memory is only valid in the context of
-	the callback.  An application wishing to cache the membership
-	data must make a local copy.  The size argument shows the
-	actual size (in bytes) of the data.  This is necessary because
-	the list of members is variable sized, and the default data
-	structure defines only one element.
-
-	For events OC_EV_MS_NEW_MEMBERSHIP, OC_EV_MS_NOT_PRIMARY, and
-	OC_EV_MS_PRIMARY_RESTORED, the 'data' member points to allocated
-	memory.  For OC_EV_MS_EVICTED, 'data' is NULL.
-
-	Cluster implementations must present membership data using the
-	following rules:
-
-	m_sequence      provides the membership generation number.  A
-			new generation has a higher 'm_sequence' value
-			than the previously delivered generation.  The
-			initial value of 'm_sequence' is zero, and is
-			incremented for each NEW_MEMBERSHIP event.
-			Members remaining in the primary sub-cluster
-			will witness a sequence of unique, ordered
-			membership changes, with a continuous series
-			of m_sequence values.  The first valid
-			membership will have an m_sequence value of 1.
-
-			For NOT_PRIMARY and PRIMARY_RESTORED events,
-			'm_sequence' retains its previous value.
-
-	m_n_member	the number of members in the membership list
-			that represent the primary sub-cluster (active
-			node membership) for the current membership.
-			The number of members must be non-zero for
-			valid memberships.
-
-	m_memb_idx	index into 'm_array' where the first element of
-			the membership list can be found.  This array
-			holds 'm_n_member' contiguous entries for the
-			current membership.  The local node must be
-			part of the current membership.
-
-			The list shall be ordered to show the oldest
-			member first and the remaining members sorted
-			by the membership sequence in which they became
-			members.  Implementations define the relative
-			order of members born in the same membership
-			sequence.
-
-			Each member node included in the membership list
-			of 'm_array' must present an identical order for
-			the members listed.
-
-	m_n_out		the number of members lost from the previous
-			membership.
-
-	m_out_idx	index into 'm_array' where the first element of
-			the lost-members can be found.  This array holds
-			'm_n_out' contiguous entries for members lost
-			from the previous membership.
-
-	m_n_in		the number of newly added members in the current
-			membership.
-
-	m_in_idx	index into 'm_array' where the first element of
-			the new members can be found.  This array holds
-			'm_n_in' contiguous entries for new members in
-			the current membership.
-
-	m_array		variable sized array containing the union of the
-			current membership, the new-members (in) list,
-			and the lost-members (out) list.
-
-
-	For any membership sequence, the lists of members, new members,
-	and lost members will be in an identical order at all nodes in
-	the membership list for all subscribed callbacks.  The order
-	must show the oldest members first.
-
-
-
-4.4   Group Messaging and Membership Events
-
-	(XXX Add group messaging intro text here.)
-
-	/*
-	 * Group Events
-	 */
-	typedef enum {
-		OC_EV_GS_INVALID = OC_EV_SET_CLASS(OC_EV_GROUP_CLASS, 0),
-		OC_EV_GS_JOIN,
-		OC_EV_GS_LEAVE,
-		OC_EV_GS_CAST,
-		OC_EV_GS_REPLY,
-		...
-	} oc_group_event_t;
-
-	(XXX Add group messaging semantics text here.)
-
-
-5.  Examples
-
-
-#include <ocf/oc_event.h>
-
-/*
- * Callback function forward definitions
- */
-const oc_ev_callback_t	my_conn_events;
-const oc_ev_callback_t	my_memb_events;
-const oc_ev_callback_t	my_group_events;
-
-main()
-{
-	int	memb_fd;
-	int	conn_fd;
-	int	group_fd;
-
-	fd_set	event_fds;
-
-	...
-
-	/*
-	 * Register for Connectivity event notification.
-	 */
-	conn_fd = oc_ev_register(S_OC_EV_CONN_CLASS, my_conn_events);
-
-	/*
-	 * Register for node Membership event notification.
-	 */
-	memb_fd = oc_ev_register(S_OC_EV_MEMB_CLASS, my_memb_events);
-
-	/*
-	 * Register for Group Messaging events in the specific
-	 * group named "clust_app_group".
-	 */
-	group_fd = oc_ev_register("clust_app_group", my_group_events);
-
-
-	/*
-	 * The main loop.  Process events forever.
-	 */
-	for (;;) {
-		...
-		FD_ZERO(&event_fds);
-		FD_SET(conn_fd, &event_fds);
-		FD_SET(memb_fd, &event_fds);
-		FD_SET(group_fd, &event_fds);
-		nfds = select(n, my_select_fds, ...);
-		...
-
-		/*
-		 * The data on the file descriptor is
-		 * implementation specific.  It may not be
-		 * the actual data associated with this event.
-		 * It is mandatory to call oc_ev_handle_event()
-		 * to pass control to the event system and in
-		 * turn invoke the callback.
-		 */
-		if (CONN_FD_HAS_DATA) {
-			oc_ev_handle_event(conn_fd);
-
-		} else if (MEMB_FD_HAS_DATA) {
-			oc_ev_handle_event(memb_fd);
-
-		} else if (GROUP_FD_HAS_DATA) {
-			oc_ev_handle_event(group_fd);
-
-		}
-	}
-}
-
-/*
- * Handler for Connectivity Events
- */
-void
-my_conn_events(oc_ev_data_t *data)
-{
-	oc_ev_connectivity_t *conn_data = (oc_ev_connectivity_t *)data;
-
-	...
-	switch (conn_data->data_hdr.e_event) {
-
-	OC_EV_CS_INTERFACE:
-		break;
-
-	OC_EV_CS_ELIGIBLE:
-		break;
-
-	OC_EV_CS_CONNECT:
-		break;
-
-	default:
-		my_error(...);
-	}
-
-	/*
-	 * All done processing this Connectivity Event.
-	 * Let the event system know it's done.
-	 */
-	oc_ev_event_done(data);
-	return;
-}
-
-/*
- * Handler for Membership Events
- */
-void
-my_memb_events(oc_ev_data_t *data)
-{
-	oc_ev_membership_t *memb_data = (oc_ev_membership_t *)data;
-
-	...
-	switch (memb_data->data_hdr.e_event) {
-
-	case OC_EV_MS_NEW_MEMBERSHIP:
-		break;
-
-	case OC_EV_MS_NOT_PRIMARY:
-		break;
-
-	case OC_EV_MS_PRIMARY_RESTORED:
-		break;
-
-	case OC_EV_MS_EVICTED:
-		break;
-
-	default:
-		my_error(...);
-	}
-
-	/*
-	 * All done processing this Membership Event.
-	 * Let the event system know it's done.
-	 */
-	oc_ev_event_done(data);
-	return;
-}
-
-
-/*
- * Handler for Group Messaging Events
- */
-void
-my_group_events(oc_ev_data_t *data)
-{
-	oc_ev_message_t *msg = (oc_ev_message_t *)data;
-
-	...
-	switch (msg->data_hdr.e_event) {
-	case OC_EV_GS_JOIN:
-		break;
-
-	case OC_EV_GS_LEAVE:
-		break;
-
-	case OC_EV_GS_CAST:
-		break;
-
-	case OC_EV_GS_REPLY:
-		break;
-
-	default:
-		my_error(...);
-	}
-
-	/*
-	 * All done processing this Group Messaging Event.
-	 * Let the event system know it's done.
-	 */
-	oc_ev_event_done(data);
-	return;
-}
-
-
-/*
- * Linux example to convert fd into signal of choice using
- * F_SETOWN and F_SETSIG fcntl commands.
- * See fcntl(2) man page for more.
- *
- * An excerpt from the man page is listed here:
- *	Using  these  mechanisms,  a  program  can implement fully
- *	asynchronous I/O without using select(2) or  poll(2)  most
- *	of the time.
- *
- *	The  use of O_ASYNC, F_GETOWN, F_SETOWN is specific to BSD
- *	and Linux.   F_GETSIG  and  F_SETSIG  are  Linux-specific.
- *	POSIX  has asynchronous I/O and the aio_sigevent structure
- *	to achieve similar things; these  are  also  available  in
- *	Linux as part of the GNU C Library (Glibc).
- */
-convert_fd_to_signal(int fd, int signum)
-{
-	/*
-	 * Instead of using select/poll,
-	 * enable signals for this file descriptor.
-	 */
-	fcntl(fd, F_SETOWN, getpid());
-
-	/*
-	 * Instead of the default SIGIO,
-	 * generate the specified signal of choice.
-	 */
-	if (signum != 0) {
-		fcntl(fd, F_SETSIG, signum);
-	}
-}
 
