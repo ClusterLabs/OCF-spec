@@ -71,7 +71,8 @@ instance parameters and are treated in much the same fashion.
 2.2. "Resource types"
 
 A resource type represents a set of resources which share a common set of
-instance parameters and a common set of actions which can be performed on it.
+instance parameters and a common set of actions which can be performed on
+resource of the given type.
 
 
 2.3. "Resource agent"
@@ -109,35 +110,46 @@ to move a resource without also moving its dependencies or only moving a
 resource but not the resources which depend on it.
 
 While the resource grouping is still commonly implemented by manual
-configuration, the information provided by the RAs should be sufficient for
-the RM to build the dependency tree on its own as far as possible.
+configuration, the information provided by the RA meta data should be
+sufficient for the RM to build the dependency tree to determine the ordering
+of resource startup and shutdown.
 
 
 3. API
 
-3.1. API versioning
+3.1. API Version Numbers
 
-The version number is of the form "x.y", where x and y are positive integer
-numbers. x is referred to as the "major" number, and y the "minor" number.
+The version number is of the form "x.y", where x and y are integer numbers
+greater than zero. x is referred to as the "major" number, and y the "minor"
+number.
 
-The major number must be increased if a _not downwards compatible_ change is
+The major number must be increased if a _backwards incompatible_ change is
 made to the API. A major number mismatch between the RA and the RM must be
 reported as an error to the administrator.
 
 The minor number must be increased if _any_ change at all is made to the API.
-If the major is increased, the minor number is reset to 1. The minor number
+If the major is increased, the minor number is reset to "1". The minor number
 can be used by both sides to see whether a certain additional feature is
 supported by the other party.
 
 
 3.2. Paths
 
-The RM locates the OCF compliant RA for a specific resource type by looking
-for the meta data file in /usr/ocf/resource.d/<ResourceType>.xml; the contents
-of this file are explained in section 4.
+The Resource Agents are located in subdirectories under "/usr/ocf/resource.d";
+the filename of the RA maps to the resource type provided and maybe a symlink
+to the real location.
 
-This file includes a pointer to the executable of the RA which the RM will
-call.
+The subdirectories allow the installation of multiple RAs for the same type,
+but from different vendors or package versions:
+
+	FailSafe -> FailSafe-1.1.0/
+	FailSafe-1.0.4/
+	FailSafe-1.1.0/
+	heartbeat -> heartbeat-0.4.9.1/
+	heartbeat-0.4.9.1/
+
+How the RM decides on which of several RAs for a specific resource type
+installed it calls is implementation specific.
 
 
 
@@ -146,7 +158,7 @@ call.
 After the RM has identified the executable to call, it will be called in the
 following format:
 
-	/path/to/RA <action> <Resource name>
+	/usr/ocf/resource.d/</RA <action> <Resource name>
 
 
 3.4. Resource Agent actions
@@ -160,19 +172,27 @@ In general, a RA should not assume it is the only RA of its type running
 because the RM might start several RA instances for multiple independent
 resource instances in parallel.
 
+_Mandatory_ actions must be supported; _not mandatory_ operations must be
+advertised in the meta data if supported. If the RM tries to call a not
+supported, not mandatory action, the RA should return an error.
 
-- start
 
+3.4.1. start
+  
+  Mandatory.
+  
   This brings the resource online and makes it available for use. It should
   NOT terminate before the resource has been fully started.
 
   It may try to implement recover actions for certain cases of startup
-  failures at its discretion to comply.
+  failures.
   
   "start" must succeed even if the resource instance is already running.
   
-- stop
+3.4.2. stop
 
+  Mandatory.
+  
   This stops the resource. After the "stop" command has completed, nothing
   should remain active of the resource and it must be possible to start it
   on the same node or another node.
@@ -188,8 +208,10 @@ resource instances in parallel.
   The "stop" action should also perform clean-ups of artifacts like leftover
   shared memory segments, semaphores, IPC message queues, lock files etc.
 
-- status
+3.4.3. status
 
+  Mandatory.
+  
   Verifies whether a resource is working correctly. This should be
   "light-weight" query as it is called by the RM fairly often to poll the
   status of the resource.
@@ -201,26 +223,42 @@ resource instances in parallel.
   Note: An interface where the RA actively informs the RM of failures is
   planned but not defined yet.
   
-- restart
+3.4.4. restart
 
-  A special case of the "start" action, this should try to recover a resource
-  locally. If this is not supported, the RA should simply return failure.
-
-  The meta-data query should reveal whether this action is supported or not.
+  Not mandatory.
   
+  A special case of the "start" action, this should try to recover a resource
+  locally. 
+  
+  If this is not fully supported, it should be mapped to a stop/start action
+  by the RM.
+
   An example includes "recovering" an IP address by moving it to another
   interface; this is much less costly than initiating a full resource group
   fail over to another node.
 
-- reload
+3.4.5. reload
+
+  Not mandatory.
 
   Reload the configuration file without breaking currently connected users.
 
-  This is not a mandatory action; if it is supported, the RA should advertise
-  this in the meta data, and if called by the RM anyway should return a "not
-  implemented" error code.
-  
+3.4.6. meta-data
 
+  Mandatory.
+  
+  Returns the resource agent meta data via stdout.
+
+3.4.7. validate-all
+
+  Not mandatory.
+
+  Validate the instance parameters provided.
+
+  Perform a syntax check and if possible, a semantical check on the instance
+  parameters.
+
+  
 3.5. Parameter passing
 
 The instance parameters and some additional attributes are passed in via the
@@ -273,9 +311,9 @@ OCF_ROOT
 These exit codes were largely modeled after the LSB 1.1.0 spec for
 compatibility.
 
-NOTE: However, the ranges "reserved for application use" by the LSB may be
-used by the OCF in the future to report more fine-grained status or special
-cases to the RM.
+NOTE: The ranges "reserved for application use" by the LSB may be used by the
+OCF in the future to report more fine-grained status or special cases to the
+RM.
 
 3.6.1. "status"
 
@@ -291,6 +329,7 @@ cases to the RM.
 
 3.6.2. "start", "stop", "restart", "reload"
 
+0	No error
 1 	generic or unspecified error (current practice)
 2 	invalid or excess argument(s)
 3 	unimplemented feature (for example, "reload")
@@ -303,6 +342,21 @@ cases to the RM.
 150-199 reserved for application use
 200-254 reserved
 
+3.6.3. "validate-all"
+
+0	No error
+1	Semantical error
+2	Syntactical error in at least one of the fields
+8-99 	reserved for future LSB use
+100-149 reserved for distribution use
+150-199 reserved for application use
+200-254 reserved
+
+3.6.4. "meta-data"
+
+0	No error
+1-254	Hard Resource Agent failure
+
 
 4. Relation to the LSB
 
@@ -311,14 +365,6 @@ It is required that the current LSB spec is fully supported by the system.
 The API tries to make it possible to have RA function both as a normal LSB
 init script and a cluster-aware RA, but this is not required functionality.
 The RAs could however use the helper functions defined for LSB init scripts.
-
-If a RA is both OCF and LSB compliant, it may reside under /etc/init.d; please
-refer to http://www.linuxbase.org/spec/refspecs/LSB_1.1.0/gLSB/sysinit.html
-for more details on LSB compliance.
-	
-However, it is still required that the meta data file be installed in
-/usr/ocf/resource.d/; the RM should not simply try to call a init.d script
-with OCF syntax.
 
 
 5. RA meta data
@@ -336,17 +382,10 @@ embedding meta data into the beginning of the init scripts:
 This is why we use simple XML to describe the RA meta data. The DTD for this
 API can be found at http://www.opencf.org/standards/ra-api-1.dtd.
 
+5.2. Semantics
 
-5.2. Location of the meta data
-
-The met data file for a given resource type is stored in
-
-	/usr/ocf/resource.d/<ResourceType>.xml
-
-
-5.3. Semantics
-
-An example of a valid meta data file is provided in ra-metadata-example.xml .
+An example of a valid meta data output is provided in
+ra-metadata-example.xml.
 
 
 A. References
@@ -362,9 +401,6 @@ TODO: List all of them.
 
 B. Change Log
 
-$Log$
-Revision 1.2  2003/06/12 12:41:03  alanr
-Update from LMB dated 3/15/2002.
 
 
 DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT
