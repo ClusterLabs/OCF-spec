@@ -2,33 +2,38 @@ A cluster is a collection of loosely coupled cooperating computing elements
 which we refer to as nodes.  Failures in clusters are not observed
 instantaneously or simultaneously by every node.  Instead, failures occur
 asynchronously, and are observed stochastically and independently by the
-various nodes of the cluster.  It is not even guaranteed that any particular
+nodes of the cluster.  It is not guaranteed that any particular
 failure will be observed in the same way by every node in the cluster, or
 even observed at all by every node.
 
 At any given point in time, a cluster is divided into zero or more
-subclusters.  Each node has a view of subcluster membership, and each node
+subclusters.  Each node has a view of subcluster membership, and
 acknowledges membership in no more than one of these subclusters.  One of
-these subclusters may be designated the "distinguished" subcluster.
-Traditionally, this distinguished subcluster is said to "have quorum".  How
-and why this subcluster is distinguished is implementation-dependent.  How
-and why each node associates itself with a particular subcluster is
-implementation-dependent.
+these subclusters may be designated the primary subcluster. Traditionally,
+this primary subcluster is said to "have quorum".  How and why the primary
+subcluster is chosen is implementation-dependent.  How and why each node
+associates itself with a particular subcluster is implementation-dependent.
 
 Membership calculation is the process whereby each node associates itself
 with a particular subcluster, and obtains a (probabalistically current) view
 of subcluster membership.  Quorum calculation is the process whereby the
-distinguished subcluster (if any) is selected.
+primary subcluster (if any) is selected.
 
-At any given point in time, any given node node can view the subcluster of
+Normally, a membership algorithm will try to make the primary subcluster as
+large as it can, but it is provable that this is impossible under all
+circumstances.  If a node is in a non-primary subcluster, the membership
+algorithm is under no obligation to try and make these non-primary
+subclusters as large as possible.
+
+At any given point in time, each node can view the subcluster of
 which it is a member as either having stable membership or being in
 transition.  Stable membership is defined to mean that no event has yet been
-observed by the node which would cause it to begin recalculation of
-subcluster membership and/or quorum.  In transition means that a particular
+observed by the node which would cause it to recalculate subcluster
+membership and/or quorum.  In transition means that a particular
 node has observed an event which may cause a membership change, but that the
 process of recomputing membership and/or quorum has not yet completed.
-Different nodes may have different views of the stable/transition state at
-any given point in time.
+Different nodes in a subcluster may have different views of the
+stable/transition state at any given point in time.
 
 Because failures occur asynchronously and are observed stochastically,
 membership provides only probabilistic (and not absolute) assurances of
@@ -36,29 +41,29 @@ ability to communicate with any particular node.  In a practical sense,
 membership is only probabilistically certain, never absolutely certain.
 
 The quorum calculation process is required to select no more than one
-distinguished subcluster at a time, but need not select any at all.  In the
-presence of arbitrary failures, no quorum algorithm can provide an absolute
-guarantee of this property.  Different quorum implementations provide
-different degrees of certainty for any given configuration and set of
-expected failures.
+primary subcluster at a time, but need not select any at all.  Under some
+circumstances, designating more than one primary subcluster at a time can
+lead to irrecoverable application failures.  Nevertheless, no quorum
+algorithm can provide an absolute guarantee of this property in the presence
+of arbitrary failures.  Different quorum implementations provide different
+degrees of certainty for any given configuration and set of expected failures.
 
-Strongly connected subclusters are subclusters where each member of every
-subcluster can communicate with every member of its subcluster.
+Strongly connected subclusters are subclusters where each node
+can communicate with every member of its subcluster.
 
 Consensus subclusters are subclusters where during the time when every
-member of a subcluster views the subcluster membership as being stable (as
-defined above) each member of a subcluster has precisely the same view of
-subcluster membership as every other member of its subcluster.
+member of a subcluster views subcluster membership as being stable (as
+defined above) each node has precisely the same view of subcluster
+membership as every other member of its subcluster.
 
-High-availability membership algorithms offer probabilistic guarantees that
-they only create strongly connected consensus subclusters.
+High-availability membership algorithms typically offer probabilistic
+guarantees that they always create strongly connected consensus subclusters.
 
 The lowest grade of membership algorithms only meet the letter of the law
-above, never select a distinguished subcluster, and make no guarantees as
-regards strong connectivity or consensus membership.  Many traditional
+above, never select a primary subcluster, and make no guarantees regarding
+strong connectivity or consensus membership.  Many traditional
 high-performance clustering applications tolerate such mechanisms, but most
-   high-availability applications require stronger guarantees.
+     high-availability applications require stronger guarantees.
 
-I have sometimes referred to such properties collectively as cluster quality
-of service (CQOS) properties.  It is probably the case that they should be
-queryable by applications.
+Such properties can be referred to collectively as cluster quality of 
+service (CQOS) properties.
