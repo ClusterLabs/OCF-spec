@@ -93,14 +93,15 @@ typedef struct oc_member_uniqueid_s		oc_member_uniqueid_t;
  *
  * See oc_cmp_uniqueid() for comparing them.
  *
- * The meaning of the unode field is not defined by this specification.
+ * The meaning of the uniqueid field is not defined by this specification.
  * It may be the node_id of a node in the cluster or it may be a unique
  * checksum or it may be some other value.  All that is specified is that
  * it and the m_instance are unique when taken as a whole.
  */
+typedef unsigned char oc_mbr_uuid[16];
 struct oc_member_uniqueid_s {
 	unsigned	m_instance;
-	oc_node_id_t	unode;
+	oc_mbr_uniqueid	uniqueid;
 };
 /*
  * This enumeration is used both to indicated the type of an event
@@ -222,7 +223,7 @@ int oc_member_request_events(oc_member_eventtype_t etype, oc_ev_t token);
 /*
  *	if  l.m_instance < r.m_instance then return -1
  *	if  r.m_instance > r.m_instance then return 1
- *	if l.m_instance == r.m_instance and l.unode == r.unode
+ *	if l.m_instance == r.m_instance and l.uniqueid == r.uniqueid
  *		then return 0
  *	otherwise return 2
  */
