@@ -221,7 +221,7 @@ unsupported action the RA shall return an error as defined below.
   Mandatory.
   
   Checks and returns the current status of the resource instance. The
-  throughness of the check is further influenced by the weight of the
+  thoroughness of the check is further influenced by the weight of the
   check, which is further explained in 3.5.3.
 
   It is accepted practice to have additional instance parameters which
@@ -394,7 +394,7 @@ codes for the "status" operation is unfortunate, but this specification
 follows this path to stay close to the LSB specification.
 
 However, a minor deviation from the values given in the LSB
-specification was made for the values "1" and "2". The existance of a
+specification was made for the values "1" and "2". The existence of a
 pid file or lock file does not convey any meaning for a RA; these values
 have been redefined, but still imply errors.
 
