@@ -1,7 +1,7 @@
 
 		CLUSTER EVENT NOTIFICATION API.
 
-		Draft version 0.1
+		Draft version 0.2
 
 1. Introduction
 
@@ -39,7 +39,18 @@
 
 1.3  API version
 
-	This document currently describes version 0.1 of the API.
+	This document currently describes version 0.2 of the API.
+
+	Revision History:
+	* June 05, 2002 - Draft 0.2
+		updated definitions,
+		clarifications for event delivery,
+		error handling improvements,
+		removed priority bands,
+		removed SIGNAL and NORETURN activation styles,
+		added membership event semantics.
+	* April 12, 2002 - Draft 0.1
+		describes general event delivery.
 
 	Individual contributors, ordered by last name:
 		Joe DiMartino <joe@osdl.org>
@@ -55,8 +66,22 @@
 	consists of a collection of interconnected whole computers (nodes),
 	and is used as a single, unified computing resource. [Pfister]
 
+	(XXX Add Alan's definitions here?)
 
 2.  Overview
+
+	When significant or interesting events occur that change the
+	state of a cluster, this can directly or indirectly affect the
+	applications and services provided by the cluster.  Presented
+	here is an API that tries to expose cluster events and their
+	semantics in an architecture neutral way.  The events were
+	classified to align with common architectural components of a
+	cluster to better facilitate interaction (via event
+	notification) with other cluster components and applications
+	inside the cluster.
+
+	(XXX Add generic cluster architecture here?)
+
 2.1   Requirements
 
 	General Event Service Requirements
@@ -69,8 +94,8 @@
 	* subscribing to certain classes should be possible
 	* support for various event notification styles:
 		a. (async) select/poll
-		b. (async) signals
-		c. (sync) block until callback
+		b. (async) signals [can be implemented via a.]
+		c. (sync) block until callback [can be implemented via a.]
 	* support for service shutdown notification
 
 
@@ -85,8 +110,8 @@
 		* (local) comm interface failed
 		* node(s) added to cluster eligibility
 		* node(s) removed from cluster eligibility
-		* p2p connection established with new node
-		* p2p connection lost
+		* point-to-point connection established with new node
+		* point-to-point connection lost
 
 
 	Membership Requirements
@@ -97,10 +122,11 @@
 
 		Membership Events
 		-----------------
-		* membership agreement to include new node(s)
-		* membership agreement to drop node(s)
-		* membership uncertain due to communication loss
-		* regain of communication after transient uncertainty
+		* membership agreement reached
+			- to include new node(s)
+			- to drop node(s)
+		* membership agreement impossible due to communication loss
+		* communication restored after transient outage
 		* new membership does not include local node
 
 
@@ -153,56 +179,69 @@
 	initialize all external services as well as this event service
 	before processing callbacks.
 
-	Events will be delivered in cluster-wide order on all nodes.
-	Callbacks will be done using the relative priority specified
-	during registration of callback routines.  (NOTE: this topic
-	will be expanded in next document draft.)
+	Cluster-wide events will be delivered in cluster-wide order to
+	all registered callback functions on all nodes.  All functions
+	registered for callbacks in a given class will be called exactly
+	once for each event.
 
-	All callbacks registered for an event in a given class must
-	be delivered the event exactly once.  Subsequent events will
-	only be delivered after callback completion for the previous
-	event.
-
-	Based upon the chosen activation style, a user-level process
-	determines that an event is pending using select/poll on the
-	supplied file descriptor or by the receipt of a signal.  A
-	callback will deliver the event in the context of this process
-	after passing control to the event notification service.
+	A user-level process determines that an event is pending using
+	select/poll on the supplied file descriptor.  When an event is
+	pending, control is passed to the event notification service
+	which delivers the event in the context of the calling process.
 
 	All kernel callbacks will be performed in a process context
 	supplied by a kernel compliant event notification service.
 
 	When callback processing is complete, the event notification
-	service must be informed.  After all registered callbacks have
-	completed processing an event, subsequent events will be
-	delivered in the same manner.
+	service must be informed.  Subsequent events will only be
+	delivered after callback completion for the preceeding event.
 
 
 3.  Event delivery API and semantics
 
 	This section explains the API for cluster event notification
-	service.
+	service.  Unless otherwise specified, errors are indicated by
+	non-zero return values.  Errors with specific meanings are
+	listed below.  Common errors are listed here once for brevity.
+
+		EPERM	need suitable privileges to register
+
+		ENOMEM	insufficient memory to complete request
 
 
 3.1 Event service registration
 
 	This is the initial call to register for cluster event
-	notification service.  Callers receives an opaque handle in
-	return.  Implementations define the contents of the opaque
-	handle.  Failure returns a NULL handle.
+	notification service.  Callers receive an opaque token.
+	Implementations define the contents of the opaque token.
+	Failure returns an appropriate value.
 
-		oc_ev_t* oc_ev_register(void);
+		int oc_ev_register(oc_ev_t **token);
+
+		token	is a pointer to the opaque event service
+			token needed for subsequent calls to
+			the event notification service.
+
+		Specific errors:
+			EINVAL	token pointer is NULL
 
 
 	Event service will terminate after calling oc_ev_unregister().
 	This routine can be safely called from a callback routine.
+	Pending events may be dropped at the discression of the cluster
+	implementation.
+
 	Upon successful return, no further callbacks will be delivered.
-	If called from a callback routine, cleanup will after callback
-	completion.  The only failure case is an invalid handle.
+	If called from a callback routine, cleanup occurs after callback
+	completion.
 
-		int oc_ev_unregister(oc_ev_t* h);
+		int oc_ev_unregister(const oc_ev_t *token);
 
-		h	is the event service handle.
+		token	is the event service token obtained from call
+			to oc_ev_register().
+
+		Specific errors:
+			EINVAL	token not recognized by event service
 
 
 3.2 Callback registration
@@ -213,137 +252,165 @@
 	oc_ev_set_callback().  A callback is delivered when an event in
 	the corresponding event class occurs.
 
-	Subsequent calls can be used to replace the an existing function
+	Subsequent calls can be used to replace an existing function
 	with a new one, or a NULL function will disable callbacks for
 	the specified event class.  By default, all event classes are
 	initialized with a NULL function, so it is only necessary to
 	define functions for the event classes of interest.
 
-		int oc_ev_set_callback(const oc_ev_t *h,
-					int pri,
+		int oc_ev_set_callback(const oc_ev_t *token,
 					event_class_t class,
-					const oc_ev_callback_t *fn);
+					const oc_ev_callback_t (*fn)(),
+					oc_ev_callback_t (**prev_fn)());
 
-		h	is the event service handle.
+		token	is the event service token obtained from call
+			to oc_ev_register().
 
-		pri     is the priority in which the event is delivered
-			with respect to the rest of the locally
-			registered clients.  Values closer to zero
-			will be processed first.
+		class	the event class to associate with 'fn'
 
-		class	the event class that triggers the call to 'fn'
+		fn      is the callback function 
 
-		fn      is the callback function.  The definition of the
-			callback is:
+		prev_fn	is the return address for the previous callback
+			function.  If 'prev_fn' is a NULL pointer, the
+			previous callback is not returned.
 
-			typedef oc_ev_callback_t void fn(oc_ed_t event,
-							const uint *cookie,
-							size_t size,
-							const void *data);
+		Specific errors:
+			EINVAL	token not recognized by event service
 
-			event   an event descriptor that is unique for
-				all events across all event classes
 
-			cookie	a callback instance identifier used
-				for callback completion
+	The definition of a callback function is:
 
-			size	size in bytes of allocated 'data'
+		typedef oc_ev_callback_t void fn(oc_ed_t event,
+						const uint *cookie,
+						size_t size,
+						const void *data);
 
-			data	variable data based on the event class.
-				This data is valid until
-				oc_ev_callback_done() is called.
+		event	an event descriptor that is unique for all
+			events across all event classes
 
-		Returns OC_SUCCESS on success and OC_FAILURE on failure.
+		cookie	a callback instance identifier used for
+			callback completion
+
+		size	size in bytes of allocated 'data'
+
+		data	returned data varies based on the event class.
+			This data is valid until oc_ev_callback_done()
+			is called.
 
 
 3.3  Service Activation
 
 	Cluster events are delivered only after service activation.
-	Three styles of activation are supported to accommodate various
-	user-level programming models.
 
-	For calls within the kernel, only the event service handle is
-	used, and all other arguments are ignored.  After activation,
+	For calls within the kernel only the event service token is
+	used and all other arguments are ignored.  After activation,
 	kernel callbacks may be delivered immediately.  All kernel
 	callbacks will be performed in a process context supplied by the
 	kernel compliant event notification service.
 
-		int oc_ev_activate(const oc_ev_t *h, int style, void *arg);
+		int oc_ev_activate(const oc_ev_t *token, int *fd);
 
-		h	is the event service handle.
+		token	is the event service token obtained from call
+			to oc_ev_register().
 
-		style	takes one of the following values:
+		fd	pointer to hold the returned file descriptor
+			for notification of pending events.  This
+			is ignored for calls within the kernel.
 
-			OC_EV_AS_NORETURN
-				do not return control after calling
-				oc_ev_handle_event().  The event
-				processing is handled completely by the
-				event service.  A user-level thread will
-				block between callbacks.  To restore
-				control, call oc_ev_unregister().
+		Specific errors:
+			EINVAL	token not recognized by event service
 
-			OC_EV_AS_GET_FD
-				return a file descriptor through 'arg'
-				suitable for use with select/poll.
-
-			OC_EV_AS_SIGNAL
-				notify event arrival through the signal
-				specified in location pointed to by
-				'arg'.
-
-		arg	this value is directly related to the style of
-			activation.
-
-	If no callback is registered before service activation, fail
-	with a return value OC_FAILURE.
+			EMFILE	can't allocate a file descriptor
 
 
 3.4  Transfer of Control
 
-	Based upon the chosen activation style, a user-level process
-	determines that an event is pending using select/poll on the
-	supplied file descriptor or by the receipt of a signal.  A
-	callback will deliver the event in the context of this process
+	A user-level process determines that an event is pending using
+	select/poll on the file descriptor returned by oc_ev_activate().
+	A callback will deliver the event in the context of this process
 	after calling oc_ev_handle_event().
 
-		int oc_ev_handle_event(const oc_ev_t *h);
-
-		h       is the event service handle.  Events are
-			delivered in order to all subscribed callbacks.
-
 	NOTE: This function does nothing for kernel clients.
+
+		int oc_ev_handle_event(const oc_ev_t *token);
+
+		token	is the event service token obtained from call
+			to oc_ev_register().
+
+		Specific errors:
+			EINVAL	token not recognized by event service
 
 
 3.5  Callback Completion
 
 	It is necessary to inform the notification service that callback
-	processing is complete.
+	processing is complete.  Any data associated with this completed
+	callback is no longer valid upon successful return.
 
-		void oc_ev_callback_done(const uint *cookie);
+		int oc_ev_callback_done(const oc_ev_t *token,
+					const uint *cookie);
 
-		cookie  callback instance identifier originally passed
+		token	is the event service token obtained from call
+			to oc_ev_register().
+
+		cookie	callback instance identifier originally passed
 			to a callback function.  This value must be
 			returned when callback action has completed.
+
+		Specific errors:
+			EINVAL	token not recognized by event service
+
+			ENOENT	cookie not recognized by event service
 
 
 3.6  Version number
 
 	This is a synchronous call to return the event notification
-	service version number.
+	service version number.  It is safe to call anytime.
+	(XXX does this interface need a token?)
+	(XXX what is an oc_ver_t - i.e., what does version data look like?)
 
-		int oc_ev_get_version(const oc_ev_t *h, oc_ver_t *ver);
+		int oc_ev_get_version(const oc_ev_t *token, oc_ver_t *ver);
 
-		h	the event service handle.
+		token	is the event service token obtained from call
+			to oc_ev_register().
+
 		ver	the version number of the service.
 
-		Return Value:
-			OC_SUCCESS on success
-			OC_FAILURE on failure
+		Specific errors:
+			EINVAL	token not recognized by event service
 
 
-4.  Data Structures
+3.7  Local Node Determination
 
-4.1   Event Classes and Events
+	This is a synchronous call to determine the local node identifier.
+
+		int oc_ev_is_my_nodeid(const oc_ev_t *token,
+					const oc_node_t *node);
+
+		token	is the event service token obtained from call
+			to oc_ev_register().
+
+		node	pointer to a node structure
+
+		Specific errors:
+			EINVAL	token not recognized by event service
+
+
+
+4.   Event Classes and Events
+
+4.1  Data Structures
+
+	oc_ev_t describes the event service token as returned
+	by oc_ev_register().
+
+	/*
+	 * An opaque token into the membership service is
+	 * defined as an int for portability.
+	 */
+	typedef oc_ev_t	int;
+
 
 	oc_ed_t is the event descriptor for a callback event.  An event
 	descriptor is unique for all events across all event classes.
@@ -367,27 +434,71 @@
 	The following event classes are defined:
 
 	typedef enum	oc_ev_class_s {
-		OC_EV_COMM_CLASS = 1,	/* Communication Event Class */
-		OC_EV_MEMB_CLASS,	/* Membership Event Class */
+		OC_EV_CONN_CLASS = 1,	/* Connectivity Event Class */
+		OC_EV_MEMB_CLASS,	/* Node Membership Event Class */
 		OC_EV_GROUP_CLASS	/* Group Messaging Event Class */
 	} oc_ev_class_t;
 
 
-	Within each event class, event types are defined.  Events within
-	each class are described in separate documents.
+	Within each event class, event types are defined.
 
-	A example event class is shown below:
+
+4.2  Connectivity Events
+
+	(XXX Add connectivity intro text here.)
 
 	/*
-	 * Membership Events
+	 * Connectivity Events
 	 */
 	typedef enum	oc_ms_event_s {
-		OC_EV_MS_INVALID = OC_EV_SET_CLASS(OC_EV_MS_CLASS, 0),
-		OC_EV_MS_NEWVIEW,
-		OC_EV_MS_SUSPECT,
-		OC_EV_MS_RECOVERED,
-		OC_EV_MS_SHUTDOWN
-	} oc_ms_event_t;
+		OC_EV_MS_INVALID = OC_EV_SET_CLASS(OC_EV_CONN_CLASS, 0),
+		OC_EV_CS_INTERFACE,
+		OC_EV_CS_ELIGIBLE,
+		OC_EV_CS_CONNECT,
+		...
+	} oc_conn_event_t;
+
+	(XXX Add connectivity semantics text here.)
+
+
+4.3   Node Membership Events
+
+	(XXX Add membership intro text here.)
+
+	/*
+	 * Node Membership Events
+	 */
+	typedef enum	oc_ms_event_s {
+		OC_EV_MS_INVALID = OC_EV_SET_CLASS(OC_EV_MEMB_CLASS, 0),
+		OC_EV_MS_NEW_MEMBERSHIP,
+		OC_EV_MS_NOT_PRIMARY,
+		OC_EV_MS_PRIMARY_RESTORED,
+		OC_EV_MS_EVICTED
+	} oc_memb_event_t;
+
+	(XXX Add node membership semantics text here.
+		This was sent out in separate document...
+		wait for comments instead of putting in two places.
+	)
+
+
+4.4   Group Messaging and Membership Events
+
+	(XXX Add group messaging intro text here.)
+
+	/*
+	 * Group Events
+	 */
+	typedef enum	oc_ms_event_s {
+		OC_EV_GS_INVALID = OC_EV_SET_CLASS(OC_EV_GROUP_CLASS, 0),
+		OC_EV_GS_JOIN,
+		OC_EV_GS_LEAVE,
+		OC_EV_GS_CAST,
+		OC_EV_GS_REPLY,
+		...
+	} oc_group_event_t;
+
+	(XXX Add group messaging semantics text here.)
 
 
 5.  Examples
@@ -399,111 +510,78 @@ oc_ev_callback_t	my_ms_events();
 
 main()
 {
-	oc_ev_t	*ev_handle;
+	oc_ev_t	*ev_token;
+	oc_ev_t	*group_token;
+	int	my_ev_fd;
+	int	my_group_fd;
+
 	...
 
 	/*
-	 * Register for event notification
+	 * Register for event notification.
+	 * Use ev_token for connectivity and membership events.
 	 */
-	ev_handle = oc_ev_register();
+	oc_ev_register(&ev_token);
 
 	/*
-	 * Install a callback function in the
-	 * low priority band for Connectivity
-	 * Events.
+	 * Install a callback function for
+	 * Connectivity Events.
 	 */
-	oc_ev_set_callback(ev_handle,
-		OC_EV_PRIO_LOW, OC_EV_COMM_CLASS, my_cs_events);
+	oc_ev_set_callback(ev_token, OC_EV_CONN_CLASS, my_cs_events);
 
 	/*
-	 * Install a callback function in the
-	 * medium priority band for Membership
-	 * Events.
+	 * Install a callback function for
+	 * Membership Events.
 	 */
-	oc_ev_set_callback(ev_handle,
-		OC_EV_PRIO_MED, OC_EV_MEMB_CLASS, my_ms_events);
-
-	/*
-	 * Install a callback function in the
-	 * high priority band for Group Messaging
-	 * Events.
-	 */
-	oc_ev_set_callback(ev_handle,
-		OC_EV_PRIO_HIGH, OC_EV_GROUP_CLASS, my_gs_events);
+	oc_ev_set_callback(ev_token, OC_EV_MEMB_CLASS, my_ms_events);
 
 
 	/*
-	 * There are 3 activation styles to
-	 * accommodate various application needs.
-	 * Only one would be used at a time.
+	 * Register for group messaging events with a separate token.
+	 * NOTE: this is unusual, as the same ev_token could be used
+	 * for this as well.  It is for example purposes only.
 	 */
+	oc_ev_register(&group_token);
 
 	/*
-	 * The first one donates the entire thread
-	 * to the event system and
+	 * Install a callback function for
+	 * Group Messaging Events.
 	 */
-	switch (activation_style) {
+	oc_ev_set_callback(group_token, OC_EV_GROUP_CLASS, my_gs_events);
 
-	case GIVE_CONTROL_TO_EVENT_SYSTEM:
 
-		oc_ev_activate(ev_handle, OC_EV_AS_NORETURN, NULL);
-		/*
-		 * Pass control to the event system
-		 * for good.  My thread can do NO
-		 * intermediate processing.  Control
-		 * will return only thru the registered
-		 * callback function.
-		 */
-		oc_ev_handle_event(ev_handle);
-		break;
+	/*
+	 * Activate the callbacks installed above.  This
+	 * returns a file descriptor for use with poll/select.
+	 */
+	oc_ev_activate(ev_token, &my_ev_fd);
+	oc_ev_activate(group_token, &my_group_fd);
 
-	case GET_FILE_DESCRIPTOR_FOR_SELECT:
-
-		oc_ev_activate(ev_handle, OC_EV_AS_GET_FD, &my_ev_fd);
+	/*
+	 * The main loop.  Process events forever.
+	 */
+	for (;;) {
 		...
-		for (;;) {
-			...
-			FD_SET(my_ev_fd, &my_select_fds);
-			select(n, my_select_fds, ...);
-			...
-			if (EVENT_FD_HAS_DATA) {
-				/*
-				 * The selected fd data is opaque.
-				 * Membership data delivered thru
-				 * callback only, so pass control
-				 * to the event system.  Callbacks
-				 * will be called from there.
-				 */
-				oc_ev_handle_event(ev_handle);
-			}
+		FD_SET(my_ev_fd, &my_select_fds);
+		FD_SET(my_group_fd, &my_select_fds);
+		select(n, my_select_fds, ...);
+		...
+		if (EVENT_FD_HAS_DATA) {
+			/*
+			 * The data returned on my_ev_fd is opaque.
+			 * Pass control to the event system to
+			 * make the callbacks.
+			 */
+			oc_ev_handle_event(ev_token);
+
+		} else if (GROUP_FD_HAS_DATA) {
+			/*
+			 * The data returned on my_group_fd is opaque.
+			 * Pass control to the event system to
+			 * make the callbacks.
+			 */
+			oc_ev_handle_event(group_token);
 		}
-		break;
-
-	case USE_SIGNALS_OF_MY_CHOICE:
-
-		my_got_sigusr1 = FALSE;
-		my_install_signal_handler(SIGUSR1, my_sigusr1);
-
-		oc_ev_activate(ev_handle, OC_EV_AS_SIGNAL, SIGUSR1);
-
-		for (;;) {
-			...
-			if (my_got_sigusr1) {
-				/*
-				 * My specified signal has fired,
-				 * so new membership data must be
-				 * available.  Pass control to the
-				 * event system to call my callbacks.
-				 */
-				oc_ev_handle_event(ev_handle);
-				my_got_sigusr1 = FALSE;
-			}
-		}
-
-		break;
-
-	default:
-		printf("Sorry, only 3 activation styles are supported...\n");
 	}
 }
 
@@ -573,9 +651,36 @@ oc_ev_callback_t my_gs_events(oc_ev_event_t event,
 }
 
 
-static void my_sigusr1(int signum)
+/*
+ * Linux example to convert fd into signal of choice using
+ * F_SETOWN and F_SETSIG fcntl commands.
+ * See fcntl(2) man page for more.
+ *
+ * An excerpt from the man page is listed here:
+ *	Using  these  mechanisms,  a  program  can implement fully
+ *	asynchronous I/O without using select(2) or  poll(2)  most
+ *	of the time.
+ *
+ *	The  use of O_ASYNC, F_GETOWN, F_SETOWN is specific to BSD
+ *	and Linux.   F_GETSIG  and  F_SETSIG  are  Linux-specific.
+ *	POSIX  has asynchronous I/O and the aio_sigevent structure
+ *	to achieve similar things; these  are  also  available  in
+ *	Linux as part of the GNU C Library (Glibc).
+ */
+convert_fd_to_signal(int fd, int signum)
 {
-	...
-	my_got_sigusr1 = TRUE;
-	return;
+	/*
+	 * Instead of using select/poll,
+	 * enable signals for this file descriptor.
+	 */
+	fcntl(fd, F_SETOWN, getpid());
+
+	/*
+	 * Instead of the default SIGIO,
+	 * generate the specified signal of choice.
+	 */
+	if (signum != 0) {
+		fcntl(fd, F_SETSIG, signum);
+	}
 }
+
