@@ -12,8 +12,6 @@ only subject to the terms and conditions set forth in the Open Publication
 License, v1.0 or later (the latest version is presently available at
 http://www.opencontent.org/openpub/).
 
-TODO: Reference a "style guide" document to explain where <>, "" etc have been
-used and why.
 
 
 1. Abstract
@@ -27,6 +25,11 @@ in a cluster.
 The RAs are obviously very specific to the resource type they are
 encapsulating, however there is no reason why they should be specific to a
 particular RM.
+
+The API described in this document should be general enough that a compliant
+Resource Agent can be used by all existing resource managers / fail-over
+systems who chose to implement this API either exclusively or in addition to
+their existing one.
 
 
 1.1. Scope
@@ -158,19 +161,18 @@ installed it calls is implementation specific.
 After the RM has identified the executable to call, it will be called in the
 following format:
 
-	/usr/ocf/resource.d/</RA <action> <Resource name>
+	/usr/ocf/resource.d/... <action> <Resource name>
 
 
 3.4. Resource Agent actions
 
 A RA must be able to perform the following actions on a given resource on
 request by the RM; additional actions may be supported by the script for
-example for LSB compliance, however more actions may be officially defined in
-the future.
+example for LSB compliance.
 
-In general, a RA should not assume it is the only RA of its type running
-because the RM might start several RA instances for multiple independent
-resource instances in parallel.
+In general, a RA should not assume it is the only RA of its type running at
+any given time because the RM might start several RA instances for multiple
+independent resource instances in parallel.
 
 _Mandatory_ actions must be supported; _not mandatory_ operations must be
 advertised in the meta data if supported. If the RM tries to call a not
@@ -187,7 +189,7 @@ supported, not mandatory action, the RA should return an error.
   It may try to implement recover actions for certain cases of startup
   failures.
   
-  "start" must succeed even if the resource instance is already running.
+  "start" must succeed if the resource instance is already running.
   
 3.4.2. stop
 
@@ -198,7 +200,7 @@ supported, not mandatory action, the RA should return an error.
   on the same node or another node.
   
   Only if this cannot be guaranteed should it report failure; stopping an
-  already stopped resource should succeed.
+  already stopped resource must succeed.
   
   The "stop" request by the RM includes the authorization to bring down the
   resource even by force as long data integrity is maintained; breaking
@@ -208,7 +210,7 @@ supported, not mandatory action, the RA should return an error.
   The "stop" action should also perform clean-ups of artifacts like leftover
   shared memory segments, semaphores, IPC message queues, lock files etc.
 
-3.4.3. status
+3.4.3. monitor
 
   Mandatory.
   
@@ -220,9 +222,6 @@ supported, not mandatory action, the RA should return an error.
   strictly required to identify the resource instance but are needed to
   monitor it or customize of how intrusive this check is allowed to be.
 
-  Note: An interface where the RA actively informs the RM of failures is
-  planned but not defined yet.
-  
 3.4.4. restart
 
   Not mandatory.
@@ -258,7 +257,7 @@ supported, not mandatory action, the RA should return an error.
   Perform a syntax check and if possible, a semantical check on the instance
   parameters.
 
-  
+
 3.5. Parameter passing
 
 The instance parameters and some additional attributes are passed in via the
@@ -305,31 +304,40 @@ OCF_ROOT
 	
 	Example: OCF_ROOT=/usr/ocf
 
+OCF_MONITOR_SKIP_QOS
+	If set, the monitor action may skip expensive checks regarding the
+	quality of the service. This effectively removes the distinction
+	between the fine-grained states 0-119 and can be used if the RM is
+	only interested in whether the resource is active at all - whether
+	partially or fully - or not.
+
 
 3.6. Exit codes
 
 These exit codes were largely modeled after the LSB 1.1.0 spec for
-compatibility.
+compatibility, except for the "monitor" action.
 
-NOTE: The ranges "reserved for application use" by the LSB may be used by the
-OCF in the future to report more fine-grained status or special cases to the
-RM.
+3.6.1. "monitor"
 
-3.6.1. "status"
+OK for fail-over / restart concerns:
+  0 - 29        running OK
+ 30 - 59        running with warning / minor QoS offset
 
-0 	program is running or service is OK
-1 	program is dead and /var/run pid file exists
-2 	program is dead and /var/lock lock file exists
-3 	program is stopped
-4 	program or service status is unknown
-5-99 	reserved for future LSB use
-100-149 reserved for distribution use
-150-199 reserved for application use
-200-254 reserved
+NOT OK wrt fail-over / restart:
+ 60 - 89        running with error / partially / QoS violation
+ 90 - 119       not running, but with error / not cleaned up
+
+120 - 149       not running at all (cleanly stopped)
+
+Hard errors:
+
+150 - 179       Execution error (called with wrong syntax etc)
+180 - 255       Reserved
+
 
 3.6.2. "start", "stop", "restart", "reload"
 
-0	No error
+0	No error, acton succeeded completely
 1 	generic or unspecified error (current practice)
 2 	invalid or excess argument(s)
 3 	unimplemented feature (for example, "reload")
@@ -341,6 +349,7 @@ RM.
 100-149 reserved for distribution use
 150-199 reserved for application use
 200-254 reserved
+
 
 3.6.3. "validate-all"
 
@@ -384,24 +393,24 @@ API can be found at http://www.opencf.org/standards/ra-api-1.dtd.
 
 5.2. Semantics
 
-An example of a valid meta data output is provided in
-ra-metadata-example.xml.
+An example of a vs fully supported by the system.
+
+The API tries to make it possible to have RA function both as a normal LSB
+init script and a cluster-aware RA, but this is not required functionality.
+The RAs could however use the helper functions defined for LSB init scripts.
 
 
-A. References
+5. RA meta data
 
-Individual contributors, ordered by last name:
+5.1. Format
 
-	Ragnar Kjørstad <linux-ha@ragnark.vestdata.no>
-	Lars Marowsky-Brée <lmb@suse.de>
-	Alan Robertson <alanr@unix.sh>
+We have the following requirements which are not fulfilled by the LSB way of
+embedding meta data into the beginning of the init scripts:
 
-TODO: List all of them.
+- Independent of the language the RA is actually written in,
+- Extensible,
+- Structured,
+- Easy to parse from a variety of languages.
 
-
-B. Change Log
-
-
-
-DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT
-
+This is why we use simple XML to describe the RA meta data. The DTD for this
+API can be found at http://www.opencf.org/standards/ra-api-1
