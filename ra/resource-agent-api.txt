@@ -216,7 +216,7 @@ unsupported action the RA shall return an error as defined below.
 
   "stop" must return an error if the resource is not fully stopped.
   
-3.4.3. status
+3.4.3. monitor
 
   Mandatory.
   
@@ -229,7 +229,7 @@ unsupported action the RA shall return an error as defined below.
   needed to monitor it or customize how intrusive this check is allowed
   to be.
 
-  Note that "status" shall also return a well defined error code (see
+  Note that "monitor" shall also return a well defined error code (see
   below) for stopped instances, ie before "start" has ever been
   invoked.
   
@@ -337,7 +337,7 @@ OCF_RESOURCE_TYPE
 These environment variables are not required for all actions, but only
 supported by some.
 
-3.5.3.1. Parameters specific to the 'status' action
+3.5.3.1. Parameters specific to the 'monitor' action
 
 OCF_CHECK_LEVEL
 	0	The most lightweight check possible, which should not
@@ -367,10 +367,12 @@ specification, with additional explanations of how they shall be used by
 RAs. In general, all non-zero status codes shall indicate failure in
 accordance to the best current practices.
 
-3.6.1. All operations but "status"
+3.6.1. All operations
 
 0	No error, action succeeded completely
 1 	generic or unspecified error (current practice)
+	The "monitor" operation shall return this for a crashed, hung or
+	otherwise non-functional resource.
 2 	invalid or excess argument(s)
 	Likely error code for validate-all, if the instance parameters
 	do not validate. Any other action is free to also return this
@@ -382,34 +384,12 @@ accordance to the best current practices.
 7 	program is not running
 	Note: This is not the error code to be returned by a successful
 	"stop" operation. A successful "stop" operation shall return 0.
+	The "monitor" action shall return this value only for a 
+	_cleanly_ stopped resource. If in doubt, it should return 1.
 8-99 	reserved for future LSB use
 100-149 reserved for distribution use
 150-199 reserved for application use
 200-254 reserved
-
-3.6.2. Exit status codes for "status"
-
-That the LSB has chosen to deviate from the set of default exit status
-codes for the "status" operation is unfortunate, but this specification
-follows this path to stay close to the LSB specification.
-
-However, a minor deviation from the values given in the LSB
-specification was made for the values "1" and "2". The existence of a
-pid file or lock file does not convey any meaning for a RA; these values
-have been redefined, but still imply errors.
-
-0	program is running or service is OK
-1	program is dead, hung or crashed. (Generic error)
-2 	invalid or excess argument(s)
-3	program is not running
-	Note: This exit code shall be returned also for cleanly 
-	inactive resource instances.
-4	program or service status is unknown
-5-99	reserved for future LSB use
-100-149	reserved for distribution use
-150-199	reserved for application use
-200-254	reserved
-
 
 4. Relation to the LSB
 
