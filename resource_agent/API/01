@@ -1,0 +1,408 @@
+DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT
+
+0. Header
+
+Topic: Open Clustering Framework Resource Agent API
+Editor: Lars Marowsky-Brée <lmb@suse.de>
+Revision: $Id$
+URL: http://www.opencf.org/documents/standards/resource-agent-api.txt
+
+Copyright (c) 2002 by Lars Marowsky-Brée. This material may be distributed
+only subject to the terms and conditions set forth in the Open Publication
+License, v1.0 or later (the latest version is presently available at
+http://www.opencontent.org/openpub/).
+
+TODO: Reference a "style guide" document to explain where <>, "" etc have been
+used and why.
+
+
+1. Abstract
+
+Resource Agents (RA) are the middle layer between the Resource Manager (RM)
+and the actual resources being managed. They aim to integrate the resource
+with the RM without any modifications to the actual resource provider itself,
+by encapsulating it carefully and thus making it movable between real nodes
+in a cluster.
+
+The RAs are obviously very specific to the resource type they are
+encapsulating, however there is no reason why they should be specific to a
+particular RM.
+
+
+1.1. Scope
+
+This document documents a common API for the RM to call the RAs so the pool of
+available RAs can be shared by the different clustering solutions.
+
+It does NOT define any libraries or helper functions which RAs might share
+with regard to common functionality like external command execution, cluster
+logging et cetera, as these are NOT specific to RA and are defined in the
+respective standards.
+
+
+1.2. API version described
+
+This document currently describes version 1.1 of the API. 
+
+
+2. Terms used in this document
+
+2.1. "Resource"
+
+A single physical or logical entity that provides a service to clients or
+other resources. For example, a resource can be a single disk volume, a
+particular network address, or an application such as a web server. A resource
+is generally available for use over time on two or more nodes in a cluster,
+although it usually can be allocated to only one node at any given time.
+
+Resources are identified by the combination of their type and name. The name
+is a special case of an instance parameter; the name/resource type combination
+is required to be unique in the cluster.
+
+A resource may also have instance parameters which provide additional
+information required for Resource Agent to control the resource.
+
+A resource may have dependencies on other resources or capabilities provided
+by other resources. Common examples include a dependency on an IP address
+being configured or a file system being mounted. These are special cases of
+instance parameters and are treated in much the same fashion.
+
+
+2.2. "Resource types"
+
+A resource type represents a set of resources which share a common set of
+instance parameters and a common set of actions which can be performed on
+resource of the given type.
+
+
+2.3. "Resource agent"
+
+A RA provides the actions ("member functions") for a a given type of
+resources; by providing the RA with the instance parameters, it is used to
+control a specific resource.
+
+They are usually implemented as shell scripts, but the API described here does
+not require this.
+
+Although this is somewhat similar to SystemV init scripts as described by the
+LSB, there are some differences explained below. 
+
+
+2.4. "Instance parameters"
+
+Instance parameters are the attributes which uniquely identify a given
+resource instance. It is recommended that the set of instance parameters for
+any given type of resources to be as minimal as possible.
+
+An instance parameter has a given name and value. They are both case sensitive
+and must satisfy the requirements of POSIX environment name/value
+combinations.
+
+
+2.5. "Resource group"
+
+This is a term from the RM world, but it is explained in brief here for
+completeness. As explained above, a complex resource commonly has dependencies
+on other resources required for proper operation; all dependencies required to
+provide an actual service to the user are usually grouped into a "resource
+group" which is handled as an atomic unit by the cluster, as it isn't possible
+to move a resource without also moving its dependencies or only moving a
+resource but not the resources which depend on it.
+
+While the resource grouping is still commonly implemented by manual
+configuration, the information provided by the RA meta data should be
+sufficient for the RM to build the dependency tree to determine the ordering
+of resource startup and shutdown.
+
+
+3. API
+
+3.1. API Version Numbers
+
+The version number is of the form "x.y", where x and y are integer numbers
+greater than zero. x is referred to as the "major" number, and y the "minor"
+number.
+
+The major number must be increased if a _backwards incompatible_ change is
+made to the API. A major number mismatch between the RA and the RM must be
+reported as an error to the administrator.
+
+The minor number must be increased if _any_ change at all is made to the API.
+If the major is increased, the minor number is reset to "1". The minor number
+can be used by both sides to see whether a certain additional feature is
+supported by the other party.
+
+
+3.2. Paths
+
+The Resource Agents are located in subdirectories under "/usr/ocf/resource.d";
+the filename of the RA maps to the resource type provided and maybe a symlink
+to the real location.
+
+The subdirectories allow the installation of multiple RAs for the same type,
+but from different vendors or package versions:
+
+	FailSafe -> FailSafe-1.1.0/
+	FailSafe-1.0.4/
+	FailSafe-1.1.0/
+	heartbeat -> heartbeat-0.4.9.1/
+	heartbeat-0.4.9.1/
+
+How the RM decides on which of several RAs for a specific resource type
+installed it calls is implementation specific.
+
+
+
+3.3. Execution syntax
+
+After the RM has identified the executable to call, it will be called in the
+following format:
+
+	/usr/ocf/resource.d/</RA <action> <Resource name>
+
+
+3.4. Resource Agent actions
+
+A RA must be able to perform the following actions on a given resource on
+request by the RM; additional actions may be supported by the script for
+example for LSB compliance, however more actions may be officially defined in
+the future.
+
+In general, a RA should not assume it is the only RA of its type running
+because the RM might start several RA instances for multiple independent
+resource instances in parallel.
+
+_Mandatory_ actions must be supported; _not mandatory_ operations must be
+advertised in the meta data if supported. If the RM tries to call a not
+supported, not mandatory action, the RA should return an error.
+
+
+3.4.1. start
+  
+  Mandatory.
+  
+  This brings the resource online and makes it available for use. It should
+  NOT terminate before the resource has been fully started.
+
+  It may try to implement recover actions for certain cases of startup
+  failures.
+  
+  "start" must succeed even if the resource instance is already running.
+  
+3.4.2. stop
+
+  Mandatory.
+  
+  This stops the resource. After the "stop" command has completed, nothing
+  should remain active of the resource and it must be possible to start it
+  on the same node or another node.
+  
+  Only if this cannot be guaranteed should it report failure; stopping an
+  already stopped resource should succeed.
+  
+  The "stop" request by the RM includes the authorization to bring down the
+  resource even by force as long data integrity is maintained; breaking
+  currently active transactions should be avoided, but the request to offline
+  the resource has higher precedence than this.
+
+  The "stop" action should also perform clean-ups of artifacts like leftover
+  shared memory segments, semaphores, IPC message queues, lock files etc.
+
+3.4.3. status
+
+  Mandatory.
+  
+  Verifies whether a resource is working correctly. This should be
+  "light-weight" query as it is called by the RM fairly often to poll the
+  status of the resource.
+ 
+  It is accepted practice to have additional instance parameters which are not
+  strictly required to identify the resource instance but are needed to
+  monitor it or customize of how intrusive this check is allowed to be.
+
+  Note: An interface where the RA actively informs the RM of failures is
+  planned but not defined yet.
+  
+3.4.4. restart
+
+  Not mandatory.
+  
+  A special case of the "start" action, this should try to recover a resource
+  locally. 
+  
+  If this is not fully supported, it should be mapped to a stop/start action
+  by the RM.
+
+  An example includes "recovering" an IP address by moving it to another
+  interface; this is much less costly than initiating a full resource group
+  fail over to another node.
+
+3.4.5. reload
+
+  Not mandatory.
+
+  Reload the configuration file without breaking currently connected users.
+
+3.4.6. meta-data
+
+  Mandatory.
+  
+  Returns the resource agent meta data via stdout.
+
+3.4.7. validate-all
+
+  Not mandatory.
+
+  Validate the instance parameters provided.
+
+  Perform a syntax check and if possible, a semantical check on the instance
+  parameters.
+
+  
+3.5. Parameter passing
+
+The instance parameters and some additional attributes are passed in via the
+environment; this has been chosen because it does not reveal the parameters to
+an unprivileged user on the same system and environment variables can be
+easily accessed by all programming languages and shell scripts.
+
+
+3.5.1. Syntax for instance parameters
+
+They are directly converted to environment variables; the name is prefixed
+with "OCF_RESKEY_".
+
+The instance parameter "force" with the value "yes" thus becomes:
+	OCF_RESKEY_force=yes
+in the environment.
+
+See section 4. for a more formal explanation of instance parameters.
+
+
+3.5.2. Special parameters
+
+The entire environment variable name space starting with OCF_ is considered to
+be reserved. 
+
+Currently, the following additional parameters are defined:
+
+OCF_RA_VERSION_MAJ
+OCF_RA_VERSION_MIN
+	Version number of the OCF Resource Agent API. If the script does 
+	not support this revision, it should report an error.
+	
+	See 3.1. for an explanation of the versioning scheme used. The version
+	number is split into two numbers for ease of use in shell scripts.
+
+	These two may be used by the RA to determine whether it is run under
+	an OCF compliant RM.
+	
+	Example: OCF_RA_VERSION_MAJ=1
+		 OCF_RA_VERSION_MIN=1
+
+OCF_ROOT
+	Referring to the root of the OCF directory hierarchy.
+	
+	Example: OCF_ROOT=/usr/ocf
+
+
+3.6. Exit codes
+
+These exit codes were largely modeled after the LSB 1.1.0 spec for
+compatibility.
+
+NOTE: The ranges "reserved for application use" by the LSB may be used by the
+OCF in the future to report more fine-grained status or special cases to the
+RM.
+
+3.6.1. "status"
+
+0 	program is running or service is OK
+1 	program is dead and /var/run pid file exists
+2 	program is dead and /var/lock lock file exists
+3 	program is stopped
+4 	program or service status is unknown
+5-99 	reserved for future LSB use
+100-149 reserved for distribution use
+150-199 reserved for application use
+200-254 reserved
+
+3.6.2. "start", "stop", "restart", "reload"
+
+0	No error
+1 	generic or unspecified error (current practice)
+2 	invalid or excess argument(s)
+3 	unimplemented feature (for example, "reload")
+4 	user had insufficient privilege
+5 	program is not installed
+6 	program is not configured
+7 	program is not running
+8-99 	reserved for future LSB use
+100-149 reserved for distribution use
+150-199 reserved for application use
+200-254 reserved
+
+3.6.3. "validate-all"
+
+0	No error
+1	Semantical error
+2	Syntactical error in at least one of the fields
+8-99 	reserved for future LSB use
+100-149 reserved for distribution use
+150-199 reserved for application use
+200-254 reserved
+
+3.6.4. "meta-data"
+
+0	No error
+1-254	Hard Resource Agent failure
+
+
+4. Relation to the LSB
+
+It is required that the current LSB spec is fully supported by the system.
+
+The API tries to make it possible to have RA function both as a normal LSB
+init script and a cluster-aware RA, but this is not required functionality.
+The RAs could however use the helper functions defined for LSB init scripts.
+
+
+5. RA meta data
+
+5.1. Format
+
+We have the following requirements which are not fulfilled by the LSB way of
+embedding meta data into the beginning of the init scripts:
+
+- Independent of the language the RA is actually written in,
+- Extensible,
+- Structured,
+- Easy to parse from a variety of languages.
+
+This is why we use simple XML to describe the RA meta data. The DTD for this
+API can be found at http://www.opencf.org/standards/ra-api-1.dtd.
+
+5.2. Semantics
+
+An example of a valid meta data output is provided in
+ra-metadata-example.xml.
+
+
+A. References
+
+Individual contributors, ordered by last name:
+
+	Ragnar Kjørstad <linux-ha@ragnark.vestdata.no>
+	Lars Marowsky-Brée <lmb@suse.de>
+	Alan Robertson <alanr@unix.sh>
+
+TODO: List all of them.
+
+
+B. Change Log
+
+
+
+DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT
+
+
