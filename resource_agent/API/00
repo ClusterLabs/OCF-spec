@@ -355,8 +355,8 @@ The RAs could however use the helper functions defined for LSB init scripts.
 A. ChangeLog
 
 $Log$
-Revision 1.1  2003/06/12 12:16:07  alanr
-Initial revision
+Revision 1.1.1.1  2003/06/12 12:16:07  alanr
+Initial addition of the "specs" directory.
 
 
 DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT
