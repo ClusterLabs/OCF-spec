@@ -13,7 +13,6 @@ License, v1.0 or later (the latest version is presently available at
 http://www.opencontent.org/openpub/).
 
 
-
 1. Abstract
 
 Resource Agents (RA) are the middle layer between the Resource Manager (RM)
@@ -411,6 +410,23 @@ embedding meta data into the beginning of the init scripts:
 - Extensible,
 - Structured,
 - Easy to parse from a variety of languages.
+This is why we use simple XML to describe the RA meta data.
 
-This is why we use simple XML to describe the RA meta data. The DTD for this
-API can be found at http://www.opencf.org/standards/ra-api-1
+C. To-do list
+
+Move the terminology definitions out into a separate document common to all
+OCF work.
+
+An interface where the RA asynchronously informs the RM of failures is planned
+but not defined yet. 
+
+
+Contributors:
+	Greg Freemyer <freemyer@NorcrossGroup.com>
+	Ragnar Kjørstad <linux-ha@ragnark.vestdata.no>
+	Lars Marowsky-Brée <lmb@suse.de>
+	Alan Robertson <alanr@unix.sh>
+  
+B. Change Log
+
+DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT DRAFT
