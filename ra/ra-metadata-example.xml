@@ -1,0 +1,88 @@
+To: ocf@lists.community.tummy.com
+Subject: [OCF]RFC: Resource Agent metadata format
+Date: Thu, 14 Mar 2002 23:18:02 +0100
+
+
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent-description SYSTEM "ocf-ra.dtd">
+<resource-agent-description name="Filesystem" ocf-version="1">
+<parameters>
+
+<parameter name="Mountpoint" type="string">
+<longdesc>
+In this case, this is the first parameter in the list; this also implies it is
+the description of the <b>resource name</b>, the unique identifier used to
+name the resource.
+
+This is the long, helpful description of what the <b>Mountpoint</b> parameter is all
+about. A user interface might display it to the user if he asks for elaborate
+help with an option, and it would obviously also provide examples etc.
+
+</longdesc>
+<shortdesc>Displayed on mouse over, for example</shortdesc>
+<default>The default value for the parameter, empty or not listed if it has no
+default</default>
+</parameter>
+
+<parameter name="Device" type="string">
+<longdesc>
+When mounting a filesystem on a specific mountpoint, you have to specify which
+device should be mounted; this will usually be similiar to /dev/sda1 or
+/dev/volumegroup/logicalvolume when using LVM.
+</longdesc>
+<shortdesc>Device to be mounted</shortdesc>
+</parameter>
+
+<parameter name="FSType" type="string">
+<longdesc>
+You should chose a journaled filesystem for the shared storage to ensure that
+the filesystem remains consistent and that it can be mounted without an
+expensive fsck run; recommendations include reiserfs, ext3 and XFS.
+</longdesc>
+<shortdesc>Type of the filesystem</shortdesc>
+<default>reiserfs</default>
+</parameter>
+
+<parameter name="mount_options" type="string">
+<longdesc>
+The mount options used for mounting a filesystem; normally this is set to
+<b>defaults</b>, but you may want to modify this if you require a read-only
+mount or something similar.
+</longdesc>
+<shortdesc>Mount options for this filesystem</shortdesc>
+<default>defaults</default>
+</parameter>
+
+</parameters>
+
+<actions>
+<start timeout="200" />
+<stop  timeout="100" />
+<!-- For a filesystem, it obviously makes no sense to try a local remount if
+     it failed -->
+<restart timeout="150" tries="0" />
+<status timeout="60" interval="30" start-delay="50" />
+<!-- This one _can_ be asked what it depends on; a resource of the
+     type or providing the capability "Blockdevice" as defined below; while 
+     the class in general depends on a generic capability to be present, a
+     specific instance of a Filesystem can also tell the RM which one exactly,
+     -->
+<dependencies timeout="60" />
+</actions>
+
+<dependencies>
+<!-- Which resource types / capabilities have to be present in a resource
+group before this one can be started? This also implicitly defines the
+start/stop order of the resources -->
+<requires type="Blockdevice" count="1" />
+
+<!-- In addition to the fact that we implicitly provide our own resource type,
+     we might provide additional capabilities; ie, while both a SCSI
+     reservation and a ICP Vortex cluster reservation provide a
+     "SCSIReserve" or "ICP_volume" respectively, both of them provide a
+     "Blockdevice", which could be listed like this -->
+<provides type="Mountpoint" />
+
+</dependencies>
+
+</resource-agent-description>
