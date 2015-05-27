@@ -4,18 +4,16 @@
 
 BASENAME=resource-agent-api
 
-DOCBOOK2HTML=docbook2html -u -d ../docbook-utils.dsl\#html
+.PHONY: all clean
 
-DOCBOOK2PS=docbook2ps -u -d ../docbook-utils.dsl\#print
+%.html: %.md
+	pandoc -f markdown -o $@ $^
 
-%.html: %.xml
-	$(DOCBOOK2HTML) $^
+%.pdf: %.md
+	pandoc -f markdown -o $@ $^
 
-%.ps: %.xml
-	$(DOCBOOK2PS) $^
-
-%.pdf: %.ps
-	ps2pdf $^
+all: $(BASENAME).pdf $(BASENAME).html
 
 clean:
-	rm $(BASENAME).pdf $(BASENAME).ps $(BASENAME).html||true
+	rm $(BASENAME).pdf $(BASENAME).html||true
+
