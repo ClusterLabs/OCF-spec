@@ -1,5 +1,4 @@
-<?xml version="1.0"?>
-<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<?xml version="1.0" encoding="utf-8"?>
 
 <!-- Root element: give the name of the Resource agent -->
 <resource-agent name="Filesystem" version="FailSafe 1.0.4">
