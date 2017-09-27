@@ -7,6 +7,14 @@
 
 	<element name="version"> <text /> </element>
 
+	<zeroOrMore><element name="longdesc">
+		<ref name="description" />
+	</element></zeroOrMore>
+
+	<zeroOrMore><element name="shortdesc">
+		<ref name="description" />
+	</element></zeroOrMore>
+
 	<element name="parameters"> <oneOrMore>
 		<element name="parameter">
 			<attribute name="name" />
@@ -15,13 +23,11 @@
 			</optional>
 
 			<oneOrMore> <element name="longdesc">
-				<attribute name="lang" />
-				<ref name="anyElement" />
+				<ref name="description" />
 			</element> </oneOrMore>
 
 			<oneOrMore> <element name="shortdesc">
-				<attribute name="lang" />
-				<ref name="anyElement" />
+				<ref name="description" />
 			</element> </oneOrMore>
 
 			<element name="content">
@@ -33,6 +39,16 @@
 							<value>integer</value>
 						</choice>
 					</attribute>
+					<group>
+						<attribute name="type">
+							<value>select</value>
+						</attribute>
+						<oneOrMore>
+							<element name="option">
+								<attribute name="value" />
+							</element>
+						</oneOrMore>
+					</group>
 				</choice>
 				<optional>
 					<attribute name="default"> <text /> </attribute>
@@ -71,6 +87,11 @@
 		<value>0</value>
 		<value>1</value>
 	</choice>
+</define>
+
+<define name="description">
+	<attribute name="lang" />
+	<ref name="anyElement" />
 </define>
 
 <define name="any">

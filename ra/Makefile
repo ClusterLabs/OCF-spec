@@ -3,6 +3,8 @@
 # 
 
 BASENAME=resource-agent-api
+GRAMMAR=ra-api-1.rng
+TEST_FILES=ra-metadata-example-1.0.xml ra-metadata-example-current.xml
 
 .PHONY: all clean
 
@@ -17,3 +19,5 @@ all: $(BASENAME).pdf $(BASENAME).html
 clean:
 	rm $(BASENAME).pdf $(BASENAME).html||true
 
+check: $(GRAMMAR) $(TEST_FILES)
+	xmllint --relaxng $(GRAMMAR) --noout $(TEST_FILES)
