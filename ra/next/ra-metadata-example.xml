@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Root element: give the name of the Resource agent -->
+<resource-agent name="Filesystem" version="FailSafe 1.0.4">
+
+<!-- Version number of the standard this complies with -->
+<version>1.0</version>
+
+<!-- List all the instance parameters the RA supports or requires. -->
+<parameters>
+
+<!-- Note that parameters flagged with 'unique' must be unique; ie no
+     other resource instance of this resource type may have the same set
+     of unique parameters.
+ -->
+ 
+<parameter name="Mountpoint" unique="1">
+<!-- This is the long, helpful description of what the parameter is all
+     about. A user interface might display it to the user if he asks for 
+     elaborate help with an option, and it would obviously also provide 
+     examples etc.
+     
+     You can have multiple ones with different "lang" attributes, but this is
+     not required.
+-->
+<longdesc lang="en">
+The resource name is the directory where the filesystem will be actually
+mounted.  Please make sure it exists. 
+</longdesc>
+
+<!-- The shortdesc may be displayed by the resource manager as a tooltip or
+     equivalent -->
+<shortdesc lang="en">Mountpoint</shortdesc>
+
+<!-- Further definition of the content -->
+<content type="string" default="/mnt" />
+
+</parameter>
+
+<parameter name="Device" unique="1">
+<longdesc lang="en">
+When mounting a filesystem on a specific mountpoint, you have to specify which
+device should be mounted; this will usually be similiar to /dev/sda1 or
+/dev/volumegroup/logicalvolume when using LVM.
+</longdesc>
+<shortdesc lang="en">Device to be mounted</shortdesc>
+<content type="string" default="/dev/"/>
+</parameter>
+
+<parameter name="FSType">
+<longdesc lang="en">
+You should chose a journaled filesystem for the shared storage to ensure that
+the filesystem remains consistent and that it can be mounted without an
+expensive fsck run; recommendations include reiserfs, ext3 and XFS.
+</longdesc>
+<shortdesc lang="en">Type of the filesystem</shortdesc>
+<content type="string" default="reiserfs"/>
+</parameter>
+
+<parameter name="mount_options">
+<longdesc lang="en">
+The mount options used for mounting a filesystem; normally this is set to
+defaults, but you may want to modify this if you require a read-only
+mount or something similar.
+</longdesc>
+<shortdesc lang="en">Mount options for this filesystem</shortdesc>
+<content type="string" default="defaults" />
+</parameter>
+
+</parameters>
+
+<!-- List the actions supported by the RA -->
+<actions>
+<!-- Valid actions: start, stop, recover, status, reload, verify-all
+     
+     The timeout is given in seconds (or s, m, h, d postfix and their
+     usual meanings) and should be a reasonable _hint_ to the RM how
+     long a certain action might take in the worst case. 
+  -->
+<action name="start"   timeout="2m30s" />
+<action name="stop"    timeout="100" />
+<action name="recover" timeout="150" />
+<!-- In what intervals the RM should poll the RA for status; and how early
+     after the start of the RA is should start. Again, this are just
+     _defaults_ and can be overridden by the RM. -->
+<action name="status" depth="0"  timeout="20" interval="10" start-delay="1m" />
+<action name="status" depth="10" timeout="60" interval="1h" start-delay="5m" />
+<action name="status" depth="20" timeout="2m" interval="1d" start-delay="1d" />
+<action name="reload"  timeout="60" />
+<action name="meta-data"  timeout="5" />
+<!-- As with all not mandatory actions, this one is only listed if supported
+  -->
+<action name="verify-all"  timeout="30" />
+
+</actions>
+
+<!-- Vendor specific attributes; as the content _inside_ the special tag is
+     obviously not covered by the RA-API DTD, it will not validate, but oh 
+     well...
+  -->
+<special tag="FailSafe">
+<Ordering>403</Ordering>
+</special>
+
+</resource-agent>
