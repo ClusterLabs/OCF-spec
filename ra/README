@@ -1,0 +1,23 @@
+Directory structure captures major-minor versioning scheme:
+
+* each major version `X` has a dedicated `api-X` directory
+
+* each minor version `Y` has a dedicated `X.Y` subdirectory
+  under said `api-X` directory
+
+* files carried per major version:
+  - `resource-agent-api.md`: API documentation + commentary
+
+* files carried per minor version:
+  - `ra-api.rng`: RelaxNG schema for metadata to be provided by the agents
+  - `ra-metadata-example.xml`: example of said metadata
+
+* symlinks to abstract concrete versions out:
+  - `latest-api-X`: points to the latest `api-X/X.Y`
+  - `latest-api`: points to the latest `latest-api-X`
+  - `next`: points to `api-Z/next`
+
+Regarding the last point, `next` directory is the upcoming, developmental
+snapshot of what will eventually become `api-W/W.Y` as usual.  Whether
+`W` in this notation is to remain `Z` or to become `Z+1` depends on whether
+any backward incompatibility of the respective schema is introduced.
