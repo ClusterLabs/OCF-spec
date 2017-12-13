@@ -7,6 +7,7 @@ Directory structure captures major-minor versioning scheme:
 
 * files carried per major version:
   - `resource-agent-api.md`: API documentation + commentary
+  - `ocf.include`: single-point holder of related constants
 
 * files carried per minor version:
   - `ra-api.rng`: RelaxNG schema for metadata to be provided by the agents
@@ -20,4 +21,5 @@ Directory structure captures major-minor versioning scheme:
 Regarding the last point, `next` directory is the upcoming, developmental
 snapshot of what will eventually become `api-W/W.Y` as usual.  Whether
 `W` in this notation is to remain `Z` or to become `Z+1` depends on whether
-any backward incompatibility of the respective schema is introduced.
+any backward incompatibility of the respective schema and/or the constants
+defined in `ocf.include` is introduced.

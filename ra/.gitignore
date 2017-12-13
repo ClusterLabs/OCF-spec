@@ -1,2 +1,6 @@
 /api-*/resource-agent-api.*
 !/api-*/resource-agent-api.md
+
+/api-*/inc-*
+/api-*/*.dump
+/api-*/*.test*

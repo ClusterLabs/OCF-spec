@@ -1,0 +1,111 @@
+#
+#/** @file ocf.include @verbinclude inc-README */
+#/* Copyright 2017 Red Hat, Inc.
+# * Author: Jan Pokorny <jpokorny@redhat.com>
+# *         (wrapping for the standardized constants, which themselves
+# *         are a matter of collective wisdom)
+# * SPDX-License-Identifier: MIT
+# */
+#
+
+#ifndef OCF_INCLUDE_GUARD
+#define OCF_INCLUDE_GUARD
+
+#if 0/* non-C prologue
+s="non-perl${s}4shellcheck"
+''''":" '''# Python prologue
+globals().setdefault("_defstr_",lambda n,v:globals().setdefault(n,v))
+globals().setdefault("_defint_",lambda n,v:globals().setdefault(n,v))
+globals().setdefault("__",lambda x: None);'''
+# shell prologue 1 + Ruby prologue
+printf "" "",'\''
+def __(x);end;def _defstr_(n,v);instance_variable_set("@"+n,v);end
+def _defint_(n,v);instance_variable_set("@"+n,v);end;__ <<"#EOT"
+';alias Xe\=eval;alias s:\=: #==;
+# Perl prologue
+s: 'non-perl-but-fnc-def(?{sub _defstr_{my $name=shift;${$name}=shift}
+sub _defint_{my $name=shift;${$name}=shift};sub __{}})':# shell prologue 2
+test "$1" = env&&_a="echo"||_a="export";while IFS=\(,\) read _x _y _z _||read _
+do case "${_x}" in \#define\ [A-Za-z]*)Xe "${_a} ${_y}=${_z}";;esac;done<<EOF
+'''#:;
+#EOT
+#*/
+#else/* C prologue */
+#ifndef _defstr_
+#define _defstr_(x, y) y
+#endif
+#ifndef _defint_
+#define _defint_(x, y) y
+#endif
+#define __() /*nothing*/
+#endif
+
+
+#/* === DEFINITIONS OF STRING CONSTANTS === */
+
+__(
+#define OCF_ROOT_SYS \
+_defstr_("OCF_ROOT_SYS","/usr/ocf")
+);
+__(
+#define OCF_ROOTDIR_RES \
+_defstr_("OCF_ROOTDIR_RES","resource.d")
+);
+
+
+#/* === DEFINITIONS OF INTEGRAL CONSTANTS === */
+
+__(
+#define OCF_SUCCESS \
+_defint_("OCF_SUCCESS",0)
+);
+__(
+#define OCF_ERR_GENERIC \
+_defint_("OCF_ERR_GENERIC",1)
+);
+__(
+#define OCF_ERR_ARGS \
+_defint_("OCF_ERR_ARGS",2)
+);
+__(
+#define OCF_ERR_UNIMPLEMENTED \
+_defint_("OCF_ERR_UNIMPLEMENTED",3)
+);
+__(
+#define OCF_ERR_PERM \
+_defint_("OCF_ERR_PERM",4)
+);
+__(
+#define OCF_ERR_INSTALLED \
+_defint_("OCF_ERR_INSTALLED",5)
+);
+__(
+#define OCF_ERR_CONFIGURED \
+_defint_("OCF_ERR_CONFIGURED",6)
+);
+__(
+#define OCF_NOT_RUNNING \
+_defint_("OCF_NOT_RUNNING",7)
+);
+
+
+#/* === END OF DEFINITIONS === */
+
+#if 0/* non-C epilogue
+s="non-perl"
+''''":" '''# Python epilogue
+tuple(globals().pop(n.join("__"))for n in("defstr","defint",""))
+'''# Ruby epilogue
+__ <<"#EOT"
+EOF
+# shell epilogue
+unset _a _x _y _z s;unalias Xe s:;: ' '''# Ruby epilogue
+#EOT
+# Perl epilogue
+#==;undef &__;undef &_defstr_;undef &_defint_;1
+#*/
+#else/* C epilogue */
+#undef __
+#endif
+
+#endif
