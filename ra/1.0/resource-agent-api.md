@@ -4,6 +4,8 @@ Editor: Lars Marowsky-Brée <lmb@suse.de>
 
 URL: http://www.opencf.org/standards/resource-agent-api.html
 
+Status: DRAFT
+
 ## License
 
     Copyright (c) 2002 Lars Marowsky-Brée.
