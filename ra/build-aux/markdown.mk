@@ -1,3 +1,5 @@
+include ../build-aux/common.mk
+
 APIDOC_NAME = resource-agent-api
 
 %.html: %.md
@@ -6,9 +8,5 @@ APIDOC_NAME = resource-agent-api
 %.pdf: %.md
 	pandoc -f markdown -o $@ $^
 
-all: ${APIDOC_NAME}.pdf ${APIDOC_NAME}.html
-
-clean:
-	rm -f -- ${APIDOC_NAME}.pdf ${APIDOC_NAME}.html
-
-.PHONY: all clean
+ALL_PREREQS += ${APIDOC_NAME}.pdf ${APIDOC_NAME}.html
+CLEAN_FILES += ${APIDOC_NAME}.pdf ${APIDOC_NAME}.html
