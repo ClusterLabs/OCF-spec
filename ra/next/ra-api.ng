@@ -21,6 +21,9 @@
 			<optional>
 				<attribute name="unique"> <ref name="boolean-values" /> </attribute>
 			</optional>
+			<optional>
+				<attribute name="required"> <ref name="boolean-values" /> </attribute>
+			</optional>
 
 			<oneOrMore> <element name="longdesc">
 				<ref name="description" />

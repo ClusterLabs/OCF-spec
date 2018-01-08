@@ -18,7 +18,7 @@
      of unique parameters.
  -->
 
-<parameter name="Mountpoint" unique="1">
+<parameter name="Mountpoint" unique="1" required="0">
 <!-- This is the long, helpful description of what the parameter is all
      about. A user interface might display it to the user if he asks for
      elaborate help with an option, and it would obviously also provide
