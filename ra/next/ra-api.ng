@@ -24,6 +24,9 @@
 			<optional>
 				<attribute name="required"> <ref name="boolean-values" /> </attribute>
 			</optional>
+			<optional>
+				<attribute name="replaced-by"> <text /> </attribute>
+			</optional>
 
 			<oneOrMore> <element name="longdesc">
 				<ref name="description" />
