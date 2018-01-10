@@ -99,7 +99,7 @@ The fstype options is used to specify file system type.
      after the start of the RA is should start. Again, this are just
      _defaults_ and can be overridden by the RM. -->
 <action name="status" depth="0"  timeout="20" interval="10" start-delay="1m" />
-<action name="status" depth="10" timeout="60" interval="1h" start-delay="5m" />
+<action name="status" role="master" depth="10" timeout="60" interval="1h" start-delay="5m" />
 <action name="status" depth="20" timeout="2m" interval="1d" start-delay="1d" />
 <action name="reload"  timeout="60" />
 <action name="meta-data"  timeout="5" />
