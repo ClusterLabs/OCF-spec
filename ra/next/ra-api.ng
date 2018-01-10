@@ -67,10 +67,12 @@
 		<element name="action">
 			<attribute name="name">
 				<choice>
+					<!-- standard actions -->
 					<value>start</value>
 					<value>stop</value>
 					<value>recover</value>
 					<value>status</value>
+					<value>monitor</value>
 					<value>reload</value>
 					<value>meta-data</value>
 					<value>verify-all</value>
