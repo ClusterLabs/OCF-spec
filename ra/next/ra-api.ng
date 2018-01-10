@@ -79,10 +79,10 @@
 			<optional><attribute name="depth" /></optional>
 		</element>
 	</oneOrMore> </element>
-	<element name="special">
+	<optional><element name="special">
 		<attribute name="tag" />
 		<ref name="anyElement" />
-	</element>
+	</element></optional>
 </element></start>
 
 <define name="boolean-values">
