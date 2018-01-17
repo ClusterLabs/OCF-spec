@@ -106,6 +106,7 @@ The fstype options is used to specify file system type.
 <!-- As with all not mandatory actions, this one is only listed if supported
   -->
 <action name="verify-all"  timeout="30" />
+<action name="anything" timeout="15" />
 
 </actions>
 
