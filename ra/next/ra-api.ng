@@ -62,27 +62,23 @@
 
 	<element name="actions"> <oneOrMore>
 		<element name="action">
-			<attribute name="name">
-				<choice>
-					<value>start</value>
-					<value>stop</value>
-					<value>recover</value>
-					<value>status</value>
-					<value>reload</value>
-					<value>meta-data</value>
-					<value>verify-all</value>
-				</choice>
-			</attribute>
+			<attribute name="name" />
 			<attribute name="timeout" />
 			<optional><attribute name="interval" /></optional>
 			<optional><attribute name="start-delay" /></optional>
 			<optional><attribute name="depth" /></optional>
+			<optional><attribute name="role">
+				<choice>
+					<value>Master</value>
+					<value>Slave</value>
+				</choice>
+			</attribute></optional>
 		</element>
 	</oneOrMore> </element>
-	<element name="special">
+	<optional><element name="special">
 		<attribute name="tag" />
 		<ref name="anyElement" />
-	</element>
+	</element></optional>
 </element></start>
 
 <define name="boolean-values">
