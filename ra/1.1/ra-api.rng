@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0">
+
+<start><element name="resource-agent">
+	<attribute name="name" />
+	<optional><attribute name="version" /></optional>
+
+	<element name="version"> <text /> </element>
+
+	<element name="parameters"> <oneOrMore>
+		<element name="parameter">
+			<attribute name="name" />
+			<optional>
+				<attribute name="unique"> <ref name="boolean-values" /> </attribute>
+			</optional>
+
+			<oneOrMore> <element name="longdesc">
+				<attribute name="lang" />
+				<ref name="anyElement" />
+			</element> </oneOrMore>
+
+			<oneOrMore> <element name="shortdesc">
+				<attribute name="lang" />
+				<ref name="anyElement" />
+			</element> </oneOrMore>
+
+			<element name="content">
+				<choice>
+					<attribute name="type">
+						<choice>
+							<value>boolean</value>
+							<value>string</value>
+							<value>integer</value>
+						</choice>
+					</attribute>
+				</choice>
+				<optional>
+					<attribute name="default"> <text /> </attribute>
+				</optional>
+			</element>
+		</element>
+	</oneOrMore> </element>
+
+	<element name="actions"> <oneOrMore>
+		<element name="action">
+			<attribute name="name">
+				<choice>
+					<value>start</value>
+					<value>stop</value>
+					<value>recover</value>
+					<value>status</value>
+					<value>reload</value>
+					<value>meta-data</value>
+					<value>verify-all</value>
+				</choice>
+			</attribute>
+			<attribute name="timeout" />
+			<optional><attribute name="interval" /></optional>
+			<optional><attribute name="start-delay" /></optional>
+			<optional><attribute name="depth" /></optional>
+		</element>
+	</oneOrMore> </element>
+	<element name="special">
+		<attribute name="tag" />
+		<ref name="anyElement" />
+	</element>
+</element></start>
+
+<define name="boolean-values">
+	<choice>
+		<value>0</value>
+		<value>1</value>
+	</choice>
+</define>
+
+<define name="any">
+	 <zeroOrMore>
+		 <choice>
+			 <attribute>
+				 <anyName/>
+			 </attribute>
+			 <text/>
+			 <element>
+					 <anyName/>
+					 <ref name="any" />
+			 </element>
+		 </choice>
+	 </zeroOrMore>
+</define>
+
+<define name="anyElement">
+	 <zeroOrMore>
+		 <choice>
+			 <text/>
+			 <element>
+					 <anyName/>
+					 <ref name="any" />
+			 </element>
+		 </choice>
+	 </zeroOrMore>
+ </define>
+
+</grammar>
