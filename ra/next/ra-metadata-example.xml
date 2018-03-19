@@ -41,7 +41,7 @@ mounted.  Please make sure it exists.
 
 </parameter>
 
-<parameter name="Device" unique="1">
+<parameter name="Device" unique="1" replaced-by="new-device">
 <longdesc lang="en">
 When mounting a filesystem on a specific mountpoint, you have to specify which
 device should be mounted; this will usually be similiar to /dev/sda1 or
