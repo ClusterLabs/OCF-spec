@@ -4,16 +4,6 @@ Editor: Lars Marowsky-Brée <lmb@suse.de>
 
 URL: http://www.opencf.org/standards/resource-agent-api.html
 
-## License
-
-    Copyright (c) 2002 Lars Marowsky-Brée.
-
-    Permission is granted to copy, distribute and/or modify this document
-    under the terms of the GNU Free Documentation License, Version 1.2 or
-    any later version published by the Free Software Foundation; with no
-    Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A
-    copy of the license can be found at http://www.gnu.org/licenses/fdl.txt.
-
 ## Abstract
 
 Resource Agents (RA) are the middle layer between the Resource Manager
@@ -47,6 +37,17 @@ respective standards.
 ### API version described
 
 This document currently describes version 1.0 of the API. 
+
+
+## Copyright Notice
+
+Copyright 2002,2018 Lars Marowsky-Brée
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A
+copy of the license can be found at http://www.gnu.org/licenses/fdl.txt.
 
 
 ## Terms used in this document
