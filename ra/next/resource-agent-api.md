@@ -46,59 +46,68 @@ copy of the license can be found at http://www.gnu.org/licenses/fdl.txt.
 
 ## Terms used in this document
 
-### "Resource"
+### Resource
 
-A single physical or logical entity that provides a service to clients or
-other resources. For example, a resource can be a single disk volume, a
-particular network address, or an application such as a web server. A resource
-is generally available for use over time on two or more nodes in a cluster,
-although it usually can be allocated to only one node at any given time.
+A _resource_, also known as a _resource instance_, is a logical entity that
+provides a particular computer-hosted service. Examples of resources include a
+disk volume, a network address, a web server, or a virtual machine.
 
-Resources are identified by a name that must be unique to the particular
-resource type. This is any name chosen by the administrator to identify
-the resource instance and passed to the RA as a special environment
-variable.
+### Cluster
 
-A resource may also have instance parameters which provide additional
-information required for Resource Agent to control the resource.
+A _cluster_ is a collection of one or more computers under common
+administration running a set of resources.
 
+### Resource Manager
 
-### "Resource types"
+A _resource manager_ (RM), also known as a _cluster resource manager_ (CRM),
+is software that manages resources in a cluster.
 
-A resource type represents a set of resources which share a common set of
-instance parameters and a common set of actions which can be performed on
-resource of the given type.
+### Resource Type
 
-The resource type name is chosen by the provider of the RA.
+A _resource type_, also known as a _resource class_, is a name indicating the
+service provided by a resource. This name should be suitable for use as a file
+name.
 
+### Resource Agent
 
-### "Resource agent"
+A _resource agent_ (RA) is a software application implementing the RA API for a
+particular resource type. An RA allows a resource manager to perform specific
+mangement tasks for resource instances.
 
-A RA provides the actions ("member functions") for a given type of
-resources; by providing the RA with the instance parameters, it is used
-to control a specific resource.
+### Resource Agent Provider
 
-They are usually implemented as shell scripts, but the API described here does
-not require this.
+A _resource agent provider_ is an entity supplying one or more resource agents
+for installation on cluster hosts. Each provider should have a unique name
+suitable for use as a file system directory name.
 
-Although this is somewhat similar to LSB init scripts, there are some
-differences explained below. 
+A provider may choose to supply multiple, separate collections of resource
+agents. In this case, each collection should have a unique name, and _provider_
+may refer either to the entity as a whole, or to an individual collection.
 
+Currently, there is no central registry for provider names. Providers should
+choose names that do not appear to be already in use for publicly available
+resource agents.
 
-### "Instance parameters"
+Each provider also chooses the resource type names used for the resource agents
+it provides. These do not need to be unique across providers.
 
-Instance parameters are the attributes which describe a given resource
-instance. It is recommended that the implementor minimize the set of
-instance parameters.
+### Resource Name 
 
-The meta data allows the RA to flag one or more instance parameters as
-`unique`. This is a hint to the RM or higher level configuration tools
-that the combination of these parameters must be unique to the given
-resource type.
+A _resource name_ is a unique identifier chosen by the cluster administrator
+to identify a particular resource instance.
 
-An instance parameter has a given name and value. They are both case
-sensitive and must satisfy the requirements of POSIX environment
-name/value combinations.
+### Resource Parameters
+
+_Resource parameters_, also known as _instance parameters_, are attributes
+describing a particular resource instance. Each parameter has a name and a
+value, which must satisfy the requirements of POSIX environment variable names
+and values.
+
+The resource agent defines the names, meaning, and allowed values of parameters
+available for its resource type.
+
+The cluster administrator specifies the particular parameters used for each
+resource instance.
 
 
 ## API
