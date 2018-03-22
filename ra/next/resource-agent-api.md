@@ -1,8 +1,13 @@
+**DRAFT - DRAFT - DRAFT**
+
+**JOIN THE developers@clusterlabs.org MAILING LIST AND FOLLOW PULL REQUESTS
+AT https://github.com/ClusterLabs/OCF-spec/ TO DISCUSS CHANGES**
+
 # Open Clustering Framework Resource Agent API
 
 Editor: Lars Marowsky-Brée <lmb@suse.de>
 
-URL: http://www.opencf.org/standards/resource-agent-api.html
+URL: https://github.com/ClusterLabs/OCF-spec/blob/master/ra/next/resource-agent-api.md
 
 ## Abstract
 
@@ -34,9 +39,14 @@ logging et cetera, as these are NOT specific to RA and are defined in the
 respective standards.
 
 
-### API version described
+## Status of This Memo
 
-This document currently describes version 1.0 of the API. 
+This is an Open Cluster Framework (OCF) document produced by ClusterLabs
+<https://clusterlabs.org>.
+
+This document describes proposed extensions to the OCF RA API, which may be
+incorporated into future versions of the standard. It has not been adopted
+as a standard, and should be considered for discussion purposes only.
 
 
 ## Copyright Notice
