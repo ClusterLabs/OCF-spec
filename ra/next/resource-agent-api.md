@@ -9,34 +9,18 @@ Editor: Lars Marowsky-Brée <lmb@suse.de>
 
 URL: https://github.com/ClusterLabs/OCF-spec/blob/master/ra/next/resource-agent-api.md
 
+
 ## Abstract
 
-Resource Agents (RA) are the middle layer between the Resource Manager
-(RM) and the actual resources being managed. They aim to integrate the
-resource type with the RM without any modifications to the actual
-resource provider itself, by encapsulating it carefully and providing
-generic methods (actions) to operate on them.
+The Open Clustering Framework Resource Agent (RA) API provides an abstraction
+layer between diverse, computer-hosted resources and diverse types of software
+managing such resources in a clustered environment.
 
-The RAs are obviously very specific to the resource type they operate
-on, however there is no reason why they should be specific to a
-particular RM.
-
-The API described in this document should be general enough that a
-compliant Resource Agent can be used by all existing resource managers /
-switch-over systems who chose to implement this API either exclusively
-or in addition to their existing one.
-
-
-### Scope
-
-This document describes a common API for the RM to call the RAs so the
-pool of available RAs can be shared by the different clustering
-solutions.
-
-It does NOT define any libraries or helper functions which RAs might share
-with regard to common functionality like external command execution, cluster
-logging et cetera, as these are NOT specific to RA and are defined in the
-respective standards.
+The RA API allows resources to be managed without any modification to the
+actual resource providers, by providing a standardized interface to common
+management tasks. It also allows (but does not require) RAs to be designed
+without consideration of specific software that might invoke them, and thus
+shared by any such software.
 
 
 ## Status of This Memo
@@ -502,3 +486,4 @@ An example of a valid meta data output is provided in
 - Lars Marowsky-Brée <lmb@suse.de>
 - Alan Robertson <alanr@unix.sh>
 - Yixiong Zou <yixiong.zou@intel.com> 
+- Ken Gaillot <kgaillot@redhat.com>
