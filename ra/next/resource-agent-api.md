@@ -128,29 +128,69 @@ zero. The minor number can be used by both sides to see whether a
 certain additional feature is supported by the other party.
 
 
-### Paths
+### The Resource Agent Directory
 
-The Resource Agents are located in subdirectories under
-`/usr/ocf/resource.d`.
+Resource agents are executable files that must be made available beneath a
+common location on a host's file system, referred to as the _resource agent
+directory_.
 
-The subdirectories allow the installation of multiple RAs for the same
-type, but from different vendors or package versions.
+In the 1.0 version of this standard, the only acceptable location of this
+directory was `/usr/ocf/resource.d`. However, in practice, installations
+typically used the nonconforming location `/usr/lib/ocf/resource.d`.
 
-The filename within the directories equals the resource type name
-provided by the RA and may be a link to the real location.
+For strict compatibility with the standard, resource agents should be installed
+in the 1.0 location, and resource managers should look for agents there.
 
-Example directory structure:
+For widest compatibility, resource agents and resource managers should allow
+the installer to choose the location of the directory, which should have a
+reasonable default, and should be identical for all resource agents and
+resource managers installed on a particular host. Resource managers may also
+choose to search multiple locations.
 
-    FailSafe -> FailSafe-1.1.0/
-    FailSafe-1.0.4/
-    FailSafe-1.1.0/
-    heartbeat -> heartbeat-1.1.2/
-    heartbeat-1.1.2/
-    heartbeat-1.1.2/IPAddr
-    heartbeat-1.1.2/IP -> IPAddr
 
-How the RM choses an agent for a specific resource type name from the
-available set is implementation specific.
+### The Resource Agent Directory Tree
+
+Each provider shall install its resource agents in a subdirectory of the
+resource agent directory, using the provider's name. This allows installation
+of multiple resource agents for the same type, but from different suppliers or
+package versions.
+
+Each resource agent should be installed as a file within the provider
+subdirectory, named according to the resource type.
+
+The provider subdirectory and resource agent file may be links to the actual
+locations.
+
+A simple example of a resource agent directory tree containing a single
+provider `acme` that provides resource agents `widget` and `gadget`:
+
+    acme/
+        acme/widget
+        acme/gadget
+
+Another example where multiple versions of acme's agents are installed:
+
+    acme -> acme-2.0/
+    acme-1.0/
+        acme-1.0/widget
+        acme-1.0/gadget
+    acme-2.0/
+        acme-2.0/widget
+        acme-2.0/gadget
+
+An example with two providers, an agent available from two providers, and an
+agent available under multiple names from the same provider:
+
+    acme/
+        acme/widget
+        acme/gadget
+    betterco/
+        betterco/widget
+        betterco/IP -> IPAddr
+        betterco/IPAddr
+
+Resource managers may choose an agent for a specific resource type name from
+the available set in any manner they choose.
 
 
 ### Execution syntax
