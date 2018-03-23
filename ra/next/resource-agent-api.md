@@ -202,30 +202,32 @@ To allow for further extensions, the RA shall ignore all other
 arguments.
 
 
-### Resource Agent actions
+### Resource Agent Actions
 
-A RA must be able to perform the following actions on a given resource
-instance on request by the RM; additional actions may be supported by
-the script for example for LSB compliance.
+Resource agents must accept a single command-line argument specifying an
+action to be performed. RAs must be able to perform actions listed in this
+section as mandatory, and must advertise them as described in
+**Resource Agent Meta-Data**. RAs may support any additional actions, including
+but not limited to those listed in this section as optional.
 
-The actions are all required to be idempotent. Invoking any operation
-twice - in particular, the start and stop actions - shall succeed and
-leave the resource instance in the requested state.
+Actions must be idempotent. Invoking an already successfully performed action
+additional times must be successful and leave the resource instance in the
+requested state. For example, a start command given to a resource that has
+already been successfully started should return success without changing the
+state of the resource.
 
-In general, a RA should not assume it is the only RA of its type running
-at any given time because the RM might start several RA instances for
-multiple independent resource instances in parallel.
+An RA should not assume it is the only RA of its type running at any given
+time. Multiple resource instances of the same type may be running in parallel.
 
-_Mandatory_ actions must be supported; _optional_ operations must be
-advertised in the meta data if supported. If the RM tries to call a
-unsupported action the RA shall return an error as defined below.
+An RA must return a well-defined status, as described under
+**Exit Status Codes**. This includes improper usage such as being called with
+an unsupported action.
 
+#### Mandatory Actions
 
 - `start`
   
-    Mandatory.
-
-    This brings the resource instance online and makes it available for
+    This must bring the resource instance online and makes it available for
     use. It should NOT terminate before the resource instance has either
     been fully started or an error has been encountered.
 
@@ -239,21 +241,19 @@ unsupported action the RA shall return an error as defined below.
 
 - `stop`
 
-    Mandatory.
-
-    This stops the resource instance. After the `stop` command has
-    completed, no component of the resource shall remain active and it
-    must be possible to start it on the same node or another node or an
+    This must stop the resource instance. After the `stop` command has
+    completed, no component of the resource shall remain active, and it
+    must be possible to start it on the same node or another node, otherwise an
     error must be returned.
 
     The `stop` request by the RM includes the authorization to bring down the
-    resource even by force as long data integrity is maintained; breaking
+    resource even by force as long as data integrity is maintained. Breaking
     currently active transactions should be avoided, but the request to offline
     the resource has higher priority than this. If this is not possible,
-    the RA shall return an error to allow higher level recovery.
+    the RA shall return an error, to allow higher-level recovery.
 
-    The `stop` action should also perform clean-ups of artifacts like leftover
-    shared memory segments, semaphores, IPC message queues, lock files etc.
+    The `stop` action should also clean up any artifacts such as leftover
+    shared memory segments, semaphores, IPC message queues, lock files, etc.
 
     `stop` must succeed if the resource is already stopped.
 
@@ -261,66 +261,54 @@ unsupported action the RA shall return an error as defined below.
   
 - `monitor`
 
-    Mandatory.
+    This must check the current status of the resource instance. The
+    thoroughness of the check is influenced by the weight of the check, as
+    described under **Monitor-Specific Parameters**.
 
-    Checks and returns the current status of the resource instance. The
-    thoroughness of the check is further influenced by the weight of the
-    check, which is further explained under **Action specific extensions**..
-
-    It is accepted practice to have additional instance parameters which
-    are not strictly required to identify the resource instance but are
-    needed to monitor it or customize how intrusive this check is allowed
-    to be.
-
-    Note that `monitor` shall also return a well defined error code (see
-    below) for stopped instances, ie before `start` has ever been
-    invoked.
-  
-- `recover`
-
-    Optional.
-
-    A special case of the `start` action, this should try to recover a resource
-    locally. 
-
-    It is recommended that this action is not advertised unless it is
-    advantageous to use when compared to a stop/start operation.
-
-    If this is not supported, it may be mapped to a stop/start action by
-    the RM.
-
-    An example includes "recovering" an IP address by moving it to another
-    interface; this is much less costly than initiating a full resource group
-    fail over to another node.
-
-- `reload`
-
-    Optional.
-
-    Notifies the resource instance of a configuration change external to
-    the instance parameters; it should reload the configuration of the
-    resource instance without disrupting the service.
-
-    It is recommended that this action is not advertised unless it is
-    advantageous to use when compared to a stop/start operation.
-
-    If this is not supported, it may be mapped to a stop/start action by
-    the RM.
+    An RA may have additional instance parameters which are not strictly
+    required to identify the resource instance but are needed to monitor it or
+    customize how intrusive this check is allowed to be.
 
 - `meta-data`
 
-    Mandatory.
+    This must display the XML information described under
+    **Resource Agent Meta-Data** via standard output.
 
-    Returns the resource agent meta data via stdout.
+#### Optional Actions
+
+- `recover`
+
+    A special case of the `start` action, this should try to recover a resource
+    locally.
+
+    It is recommended that this action is not advertised unless it is
+    advantageous to use when compared to a stop and start action sequence.
+
+    If this is not supported, it may be mapped to a stop and start action
+    sequence by the RM.
+
+    An example includes "recovering" an IP address by moving it to another
+    interface; this is much less costly than initiating a full resource group
+    fail-over to another node.
+
+- `reload`
+
+    This should notify the resource instance of a configuration change external
+    to the instance parameters. It should reload the configuration of the
+    resource instance without disrupting the service.
+
+    It is recommended that this action is not advertised unless it is
+    advantageous to use when compared to a stop and start action sequence.
+
+    If this is not supported, it may be mapped to a stop and start action
+    sequence by the RM.
 
 - `validate-all`
 
-    Optional.
+    This should validate the instance parameters provided.
 
-    Validate the instance parameters provided.
-
-    Perform a syntax check and if possible, a semantic check on the
-    instance parameters.
+    This should perform a syntax check, and if possible a semantic check, on
+    the instance parameters.
 
 
 ### Parameter passing
@@ -383,12 +371,10 @@ Currently, the following additional environment variables are defined:
 
     The name of the resource type being operated on.
 
-### Action specific extensions
+#### Monitor-Specific Parameters
 
-These environment variables are not required for all actions, but only
-supported by some.
-
-#### Parameters specific to the 'monitor' action
+Resource agents may optionally support the parameters listed here when called
+with the `monitor` action.
 
 - `OCF_CHECK_LEVEL`
 
