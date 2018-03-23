@@ -494,13 +494,12 @@ it may not be considered a failure).
 
     Reserved
 
+
 ## Relation to the LSB
 
-It is required that the current LSB spec is fully supported by the system.
-
-The API tries to make it possible to have RA function both as a normal LSB
-init script and a cluster-aware RA, but this is not required functionality.
-The RAs could however use the helper functions defined for LSB init scripts.
+The RA API aims to make it possible for (but does not require) an RA to
+function as both an LSB-compliant init script and a cluster-aware RA.
+RAs may use helper functions defined for LSB init scripts.
 
 
 ## RA meta data
