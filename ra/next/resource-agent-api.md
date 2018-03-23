@@ -423,14 +423,17 @@ It is recommended that if a requested level is not implemented,
 the RA should perform the next lower level supported.
 
 
-### Exit status codes
+### Exit Status Codes
 
-These exit status codes are the ones documented in the LSB 1.1.0
-specification, with additional explanations of how they shall be used by
-RAs. In general, all non-zero status codes shall indicate failure in
-accordance to the best current practices.
+These exit status codes are identical to those documented in the LSB 5.0 Core
+specification for non-status "Init Script Actions"
+<https://refspecs.linuxfoundation.org/LSB_5.0.0/LSB-Core-generic/LSB-Core-generic/iniscrptact.html>,
+with additional explanations of how they shall be used by RAs.
 
-#### All operations
+Non-zero status codes are referred to in this document as errors, however RA
+developers should keep in mind that RMs decide whether a status code is a
+failure or not (for example, if a particular error is the expected situation,
+it may not be considered a failure).
 
 - `0`
 
@@ -439,7 +442,7 @@ accordance to the best current practices.
 - `1`
 
     Generic or unspecified error (current practice)
-    The "monitor" operation shall return this for a crashed, hung or
+    The "monitor" action shall return this for a crashed, hung or
     otherwise non-functional resource.
 
 - `2`
@@ -451,7 +454,8 @@ accordance to the best current practices.
 
 - `3`
 
-    Unimplemented feature (for example, "reload")
+    Unimplemented feature
+    RAs should return this for unsupported actions (for example, "reload").
 
 - `4`
 
