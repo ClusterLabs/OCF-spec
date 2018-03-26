@@ -540,13 +540,6 @@ Certain meta-data XML elements warrant further explanation:
       instance of this resource type should specify a timeout equal to or greater
       than this value.
 
-## To-do list
-
-- Move the terminology definitions out into a separate document
-  common to all OCF work.
-- An interface where the RA asynchronously informs the RM of
-  failures is planned but not defined yet. 
-
 ## Contributors
 
 - James Bottomley <James.Bottomley@steeleye.com>
