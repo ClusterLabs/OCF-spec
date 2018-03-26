@@ -502,25 +502,57 @@ function as both an LSB-compliant init script and a cluster-aware RA.
 RAs may use helper functions defined for LSB init scripts.
 
 
-## RA meta data
+## Resource Agent Meta-Data
 
 ### Format
 
-The API has the following requirements which are not fulfilled by the
-LSB way of embedding meta data into the beginning of the init scripts:
+While the LSB uses shell script comments at the beginning of init scripts to
+provide meta-data, OCF RA meta-data is described using XML so that the
+meta-data can be:
 
-- Independent of the language the RA is actually written in,
+- Independent of the language the RA itself is written in,
 - Extensible,
-- Structured,
+- Structured, and
 - Easy to parse from a variety of languages.
 
-This is why the API uses simple XML to describe the RA meta data. The
-DTD for this API can be found at [this location](http://www.opencf.org/standards/ra-api-1.dtd).
+RA meta-data shall conform to the XML schema formally described at
+<https://github.com/ClusterLabs/OCF-spec/blob/master/ra/next/ra-api.rng>.
+
+### Example
+
+An example of a valid meta-data output is provided at
+<https://github.com/ClusterLabs/OCF-spec/blob/master/ra/next/ra-metadata-example.xml>.
 
 ### Semantics
 
-An example of a valid meta data output is provided in
-`ra-metadata-example.xml`.
+Certain meta-data XML elements warrant further explanation:
+
+- `resource-agent`: The optional `version` attribute should describe the
+  version of the agent itself.
+
+- `version`: This is the version of the OCF RA standard with which the RA
+  claims compatibility.
+
+- `longdesc` and `shortdesc`: These are hints to tools describing the purpose
+  of the agent. They may contain any XML, but it is strongly recommended to
+  limit the content to a text string.
+
+- `parameter`:
+    - `unique` attribute: This is a hint to RMs and other tools that the
+      combination of all parameters marked `unique` must be unique to the resource
+      type. That is, no two resource instances of the same resource type may have
+      the same combination of `unique` parameters.
+    - `required` attribute: This is a hint to RMs and other tools that every
+      resource instance of this resource type must specify a value for this
+      parameter.
+    - `longdesc` and `shortdesc`: The same guidance applies as described above
+      when these tags appear under `resource-agent`.
+
+- `action`: Resource agents should advertise each action they support,
+  including all mandatory actions, with an `action` element.
+    - `timeout`: This is a hint to RMs and other tools that every resource
+      instance of this resource type should specify a timeout equal to or greater
+      than this value.
 
 ## To-do list
 
