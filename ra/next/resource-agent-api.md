@@ -64,9 +64,8 @@ is software that manages resources in a cluster.
 
 ### Resource Type
 
-A _resource type_, also known as a _resource class_, is a name indicating the
-service provided by a resource. This name should be suitable for use as a file
-name.
+A _resource type_ is a name indicating the service provided by a resource. This
+name should be suitable for use as a file name.
 
 ### Resource Agent
 
