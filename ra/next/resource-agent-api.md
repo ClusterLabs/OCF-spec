@@ -265,8 +265,11 @@ an unsupported action.
     described under **Monitor-Specific Parameters**.
 
     An RA may have additional instance parameters which are not strictly
-    required to identify the resource instance but are needed to monitor it or
-    customize how intrusive this check is allowed to be.
+    required to identify the resource instance but are useful for monitoring
+    it. In particular, RAs may support an integer _depth_ parameter specifying
+    how intrusive this check is allowed to be (which values for depth are
+    supported and what degree of intrusiveness they correspond to is left to
+    the RA).
 
 - `meta-data`
 
@@ -353,7 +356,7 @@ Currently, the following additional environment variables are defined:
 
     ```
     OCF_RA_VERSION_MAJOR=1
-    OCF_RA_VERSION_MINOR=0
+    OCF_RA_VERSION_MINOR=1
     ```
 
 * `OCF_ROOT`
@@ -535,9 +538,22 @@ Certain meta-data XML elements warrant further explanation:
 
 - `action`: Resource agents should advertise each action they support,
   including all mandatory actions, with an `action` element.
-    - `timeout`: This is a hint to RMs and other tools that every resource
-      instance of this resource type should specify a timeout equal to or greater
-      than this value.
+    - `name` attribute (required): This is a unique identifier for the action
+      as described in **Resource Agent Actions**. There may be multiple
+      `action` entries with the same name and different values for other
+      attributes (for example, to recommend different timeout and interval
+      values for status actions of different depths).
+    - `timeout` attribute (required): This is a hint to RMs and other tools
+      that every resource instance of this resource type should specify a
+      timeout equal to or greater than this value (when used with any other
+      attribute values specified in this entry).
+    - `interval` attribute (optional): This is a hint to RMs and other tools
+      that every resource instance of this resource type should repeat this
+      action at intervals equal to this value (when used with any other
+      attribute values specified in this entry).
+    - `depth` attribute (optional): This is a hint to RMs and other tools
+      that this action of the resource agent utilizes the depth parameter with
+      this value, as described in **Resource Agent Actions**.
 
 ## Contributors
 
