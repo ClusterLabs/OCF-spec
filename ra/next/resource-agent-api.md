@@ -278,6 +278,20 @@ an unsupported action.
 
 #### Optional Actions
 
+- `notify`
+
+    If the resource requires special coordination when multiple instances are
+    run simultaneously in the cluster, the resource agent should support this
+    action, which should perform such coordination.
+
+    When the RA supports this action, RMs should call the action for all active
+    instances of this particular resource in the cluster before and after any
+    demote, promote, start, or stop action performed on any instance of it.
+
+    How the RM passes useful information to the RA when performing this action
+    is currently left to the RM and RA, but may be formalized in a future
+    version of this standard.
+
 - `recover`
 
     A special case of the `start` action, this should try to recover a resource
