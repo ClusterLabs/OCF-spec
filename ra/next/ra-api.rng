@@ -67,12 +67,7 @@
 			<optional><attribute name="interval" /></optional>
 			<optional><attribute name="start-delay" /></optional>
 			<optional><attribute name="depth" /></optional>
-			<optional><attribute name="role">
-				<choice>
-					<value>Master</value>
-					<value>Slave</value>
-				</choice>
-			</attribute></optional>
+			<optional><attribute name="role"></optional>
 		</element>
 	</oneOrMore> </element>
 	<optional><element name="special">

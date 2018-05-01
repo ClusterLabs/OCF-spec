@@ -278,6 +278,12 @@ an unsupported action.
 
 #### Optional Actions
 
+- `demote`
+
+    If the resource supports two modes of operation (_roles_), this action
+    must put the resource in the default role (the role that a start action
+    leaves the resource in).
+
 - `notify`
 
     If the resource requires special coordination when multiple instances are
@@ -291,6 +297,11 @@ an unsupported action.
     How the RM passes useful information to the RA when performing this action
     is currently left to the RM and RA, but may be formalized in a future
     version of this standard.
+
+- `promote`
+
+    If the resource supports roles, this action must put the resource in the
+    special (non-default) role.
 
 - `recover`
 
@@ -568,6 +579,9 @@ Certain meta-data XML elements warrant further explanation:
     - `depth` attribute (optional): This is a hint to RMs and other tools
       that this action of the resource agent utilizes the depth parameter with
       this value, as described in **Resource Agent Actions**.
+    - `role` attribute (optional): This is a hint to RMs and other tools
+      that this action of the resource agent recognizes this role value,
+      as described in **Resource Agent Actions**.
 
 ## Contributors
 
