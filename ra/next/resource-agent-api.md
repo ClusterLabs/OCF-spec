@@ -265,8 +265,11 @@ an unsupported action.
     described under **Monitor-Specific Parameters**.
 
     An RA may have additional instance parameters which are not strictly
-    required to identify the resource instance but are needed to monitor it or
-    customize how intrusive this check is allowed to be.
+    required to identify the resource instance but are useful for monitoring
+    it. In particular, RAs may support an integer _depth_ parameter specifying
+    how intrusive this check is allowed to be (which values for depth are
+    supported and what degree of intrusiveness they correspond to is left to
+    the RA).
 
 - `meta-data`
 
@@ -274,6 +277,31 @@ an unsupported action.
     **Resource Agent Meta-Data** via standard output.
 
 #### Optional Actions
+
+- `demote`
+
+    If the resource supports two modes of operation (_roles_), this action
+    must put the resource in the default role (the role that a start action
+    leaves the resource in).
+
+- `notify`
+
+    If the resource requires special coordination when multiple instances are
+    run simultaneously in the cluster, the resource agent should support this
+    action, which should perform such coordination.
+
+    When the RA supports this action, RMs should call the action for all active
+    instances of this particular resource in the cluster before and after any
+    demote, promote, start, or stop action performed on any instance of it.
+
+    How the RM passes useful information to the RA when performing this action
+    is currently left to the RM and RA, but may be formalized in a future
+    version of this standard.
+
+- `promote`
+
+    If the resource supports roles, this action must put the resource in the
+    special (non-default) role.
 
 - `recover`
 
@@ -353,7 +381,7 @@ Currently, the following additional environment variables are defined:
 
     ```
     OCF_RA_VERSION_MAJOR=1
-    OCF_RA_VERSION_MINOR=0
+    OCF_RA_VERSION_MINOR=1
     ```
 
 * `OCF_ROOT`
@@ -535,9 +563,25 @@ Certain meta-data XML elements warrant further explanation:
 
 - `action`: Resource agents should advertise each action they support,
   including all mandatory actions, with an `action` element.
-    - `timeout`: This is a hint to RMs and other tools that every resource
-      instance of this resource type should specify a timeout equal to or greater
-      than this value.
+    - `name` attribute (required): This is a unique identifier for the action
+      as described in **Resource Agent Actions**. There may be multiple
+      `action` entries with the same name and different values for other
+      attributes (for example, to recommend different timeout and interval
+      values for status actions of different depths).
+    - `timeout` attribute (required): This is a hint to RMs and other tools
+      that every resource instance of this resource type should specify a
+      timeout equal to or greater than this value (when used with any other
+      attribute values specified in this entry).
+    - `interval` attribute (optional): This is a hint to RMs and other tools
+      that every resource instance of this resource type should repeat this
+      action at intervals equal to this value (when used with any other
+      attribute values specified in this entry).
+    - `depth` attribute (optional): This is a hint to RMs and other tools
+      that this action of the resource agent utilizes the depth parameter with
+      this value, as described in **Resource Agent Actions**.
+    - `role` attribute (optional): This is a hint to RMs and other tools
+      that this action of the resource agent recognizes this role value,
+      as described in **Resource Agent Actions**.
 
 ## Contributors
 
