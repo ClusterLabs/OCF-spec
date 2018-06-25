@@ -25,6 +25,16 @@
 				<attribute name="required"> <ref name="boolean-values" /> </attribute>
 			</optional>
 
+			<optional><element name="deprecated">
+				<empty />
+				<optional>
+					<attribute name="replaced-with"><text /></attribute>
+				</optional>
+				<zeroOrMore><element name="desc">
+					<ref name="description" />
+				</element></zeroOrMore>
+			</element></optional>
+
 			<oneOrMore> <element name="longdesc">
 				<ref name="description" />
 			</element> </oneOrMore>

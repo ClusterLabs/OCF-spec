@@ -82,6 +82,36 @@ The fstype options is used to specify file system type.
 </content>
 </parameter>
 
+<parameter name="archaic1">
+<deprecated />
+<longdesc lang="en">
+Some archaic parameter
+</longdesc>
+<shortdesc lang="en">Archaic parameter</shortdesc>
+<content type="string" />
+</parameter>
+
+<parameter name="archaic2">
+<deprecated replaced-with="archaic1"/>
+<longdesc lang="en">
+Some archaic parameter
+</longdesc>
+<shortdesc lang="en">Archaic parameter</shortdesc>
+<content type="string" />
+</parameter>
+
+<parameter name="archaic3">
+  <deprecated replaced-with="archaic1">
+    <desc lang="en">Don't use foo, it's bad.</desc>
+    <desc lang="cs">Nepoužívej foo, sic to schytáš</desc>
+  </deprecated>
+<longdesc lang="en">
+Some archaic parameter
+</longdesc>
+<shortdesc lang="en">Archaic parameter</shortdesc>
+<content type="string" />
+</parameter>
+
 </parameters>
 
 <!-- List the actions supported by the RA -->

@@ -3,7 +3,7 @@
 # 
 
 BASENAME=resource-agent-api
-GRAMMAR=ra-api.ng
+GRAMMAR=ra-api.rng
 TEST_FILES=ra-metadata-example-1.0.xml ra-metadata-example.xml
 
 .PHONY: all clean
