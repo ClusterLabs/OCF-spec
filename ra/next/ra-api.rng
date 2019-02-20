@@ -19,6 +19,10 @@
 		<element name="parameter">
 			<attribute name="name" />
 			<optional>
+				<attribute name="unique-group" />
+			</optional>
+			<optional>
+				<!-- "unique" is deprecated -->
 				<attribute name="unique"> <ref name="boolean-values" /> </attribute>
 			</optional>
 			<optional>

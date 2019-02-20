@@ -24,16 +24,17 @@
 <!-- All instance parameters the RA supports must be listed in meta-data -->
 <parameters>
 
-<!-- Parameters flagged with 'unique' must be unique. That is, no other
-     resource instance of this resource type should have the same combination
-     of unique parameters.
+<!-- The combination of parameters flagged with the same "unique-group"
+     attribute should be unique. That is, no other instance of this resource
+     type should have the same set of these parameters. This is a hint to RMs
+     and other tools, which may, but are not required to, enforce it.
 -->
 
 <!-- These attributes indicate that each instance of this agent must specify a
-     value for the "config-file" parameter, and the value must be unique across
-     all instances.
+     value for the "config-file" parameter, and (since no other parameter uses
+     the same unique group) the value should be unique across all instances.
 -->
-<parameter name="config-file" unique="1" required="1">
+<parameter name="config-file" unique-group="config-file" required="1">
 
 <!-- A helpful, extended description of the parameter. A user interface might
      display it to the user when asked for help with an option. You may include
@@ -62,12 +63,15 @@ The full path to the example daemon configuration file.
 
 </parameter>
 
-<!-- If unique is 0 or unspecified, different instances of this resource type
-     may have the same value for this parameter. If required is 0 or
-     unspecified, an instance of this resource type may omit this parameter
-     (typically, a default value will be used in that case).
+<!-- Since the "ip" and "port" parameters share the same unique group, the
+     combination of the two should be unique across all instances of this
+     resource type.
+
+     If required is 0 or unspecified, an instance of this resource type may
+     omit this parameter (typically, a default value will be used in that
+     case).
 -->
-<parameter name="ip">
+<parameter name="ip" unique-group="address">
 <longdesc lang="en">
 The local IP address the example daemon should bind to and accept requests on.
 If omitted, the wildcard address will be used.
@@ -76,7 +80,7 @@ If omitted, the wildcard address will be used.
 <content type="string" default="*"/>
 </parameter>
 
-<parameter name="port">
+<parameter name="port" unique-group="address">
 <longdesc lang="en">
 The port number the example daemon should accept requests on.
 </longdesc>
@@ -84,7 +88,10 @@ The port number the example daemon should accept requests on.
 <content type="string" default="65535"/>
 </parameter>
 
-<!-- Example of a parameter using select -->
+<!-- Example of a parameter using select. If no unique group is specified,
+     different instances of this resource type may have the same value for this
+     parameter.
+-->
 <parameter name="mode">
 <longdesc lang="en">
 The mode the example daemon should operate in. Allowed values are "dry-run" and

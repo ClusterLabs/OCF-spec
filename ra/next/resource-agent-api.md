@@ -572,10 +572,18 @@ Certain meta-data XML elements warrant further explanation:
   recommended to limit the content to a text string.
 
 - `parameter`:
-    - `unique` attribute: This is a hint to RMs and other tools that the
-      combination of all parameters marked `unique` must be unique to the resource
-      type. That is, no two resource instances of the same resource type may have
-      the same combination of `unique` parameters.
+    - `unique-group` attribute: This is a hint to RMs and other tools that the
+      combination of all parameters with the same value should be unique to the
+      resource type. That is, no two instances of the same resource type should
+      have the same combination of these parameters. If not specified, multiple
+      instances of the same resource type may have the same value of this
+      parameter.
+
+      Note: a boolean `unique` attribute was formerly used for a similar
+      purpose, but was commonly misused, and is now deprecated. An RA may
+      provide it for backward compatibility, but because it is only a hint in
+      any case, RMs and tools are free to ignore it.
+
     - `required` attribute: This is a hint to RMs and other tools that every
       resource instance of this resource type must specify a value for this
       parameter.
