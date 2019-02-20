@@ -428,8 +428,9 @@ with the `monitor` action.
         Example: An internal consistency check to verify service
         integrity.
 
-Service must remain available during all of these operation.
-All other number are reserved.
+    - All other numbers are reserved.
+
+Service must remain available during the monitor, regardless of level.
 
 It is recommended that if a requested level is not implemented,
 the RA should perform the next lower level supported.
@@ -442,53 +443,61 @@ specification for non-status "Init Script Actions"
 <https://refspecs.linuxfoundation.org/LSB_5.0.0/LSB-Core-generic/LSB-Core-generic/iniscrptact.html>,
 with additional explanations of how they shall be used by RAs.
 
-Non-zero status codes are referred to in this document as errors, however RA
+Although non-zero status codes are referred to in this document as errors, RA
 developers should keep in mind that RMs decide whether a status code is a
 failure or not (for example, if a particular error is the expected situation,
 it may not be considered a failure).
 
 - `0`
 
-    No error, action succeeded completely
+    Success. The requested action finished and succeeded completely, or
+    for a "monitor" action, the service was found to be properly active.
 
 - `1`
 
-    Generic or unspecified error (current practice)
-    The "monitor" action shall return this for a crashed, hung or
-    otherwise non-functional resource.
+    Unspecified error. The action did not completely succeed for some reason,
+    or for a "monitor" action, the service was malfunctioning or in an
+    undetermined state. A more specific status code should be used if
+    applicable.
 
 - `2`
 
-    Invalid or excess argument(s)
-    Likely error code for validate-all, if the instance parameters
-    do not validate. Any other action is free to also return this
-    exit status code for this case.
+    Invalid parameter(s). Note: there is some variance in the actual use of
+    this status; it may refer to parameters that are inherently invalid (for
+    example, text provided for a parameter value that must be an integer), or
+    to parameters that are invalid in the context of the local host (for
+    example, a supplied file name does not exist). It is recommended to use
+    the latter meaning, so RMs can decide to try running the resource on a
+    different host after receiving this status.
 
 - `3`
 
-    Unimplemented feature
-    RAs should return this for unsupported actions (for example, "reload").
+    Unimplemented feature. The RA does not support the requested action.
 
 - `4`
 
-    User had insufficient privilege
+    Insufficient privilege. The user executing the RA lacked some necessary
+    authorization.
 
 - `5`
 
-    Program is not installed
+    Not installed. Some software required for the operation of the service is
+    not available on the local host.
 
 - `6`
 
-    Program is not configured
+    Not configured. Note: there is some variance in the actual use of this
+    status; it may mean the service's own configuration on the local host is
+    invalid, or it may mean the parameters supplied to the RA are inherently
+    invalid. It is recommended to use the latter meaning, so that RMs may
+    decide to fail the action without retrying elsewhere.
 
 - `7`
 
-    Program is not running
-
-    Note: This is not the error code to be returned by a successful
-    "stop" operation. A successful "stop" operation shall return 0.
-    The "monitor" action shall return this value only for a 
-    _cleanly_ stopped resource. If in doubt, it should return 1.
+    Not running. A "monitor" action shall return this if it finds the service
+    to be completely stopped (if there is doubt, some other status such as 1
+    should be returned). Note: A successful "stop" operation shall return 0,
+    not 7.
 
 - `8-99`
 
