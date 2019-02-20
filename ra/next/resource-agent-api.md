@@ -559,6 +559,13 @@ Certain meta-data XML elements warrant further explanation:
       parameter.
     - `longdesc` and `shortdesc`: The same guidance applies as described above
       when these tags appear under `resource-agent`.
+    - `deprecated` child element: When present, this element is a hint to RMs
+      and other tools that the parameter is supported for backward
+      compatibility only. It may contain any number of the following:
+      - `replaced-with` child element: This must contain a `name` attribute
+        with the name of another parameter that should be used instead of the
+        deprecated parameter.
+      - `desc` child element: textual information about the deprecation.
 
 - `action`: Resource agents should advertise each action they support,
   including all mandatory actions, with an `action` element.

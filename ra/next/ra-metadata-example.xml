@@ -109,7 +109,9 @@ This parameter is no longer used.
 
 <!-- Example of a deprecated parameter with a replacement -->
 <parameter name="cf">
-<deprecated replaced-with="config-file"/>
+  <deprecated>
+    <replaced-with name="config-file"/>
+  </deprecated>
 <longdesc lang="en">
 The full path to the example daemon configuration file.
 </longdesc>
@@ -121,7 +123,8 @@ The full path to the example daemon configuration file.
      was deprecated (in multiple translations).
 -->
 <parameter name="foo">
-  <deprecated replaced-with="mode">
+  <deprecated>
+    <replaced-with name="mode"/>
     <desc lang="en">Don't use foo, it's bad.</desc>
     <desc lang="cs">Nepoužívej foo, sic to schytáš</desc>
   </deprecated>

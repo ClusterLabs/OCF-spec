@@ -27,12 +27,18 @@
 
 			<optional><element name="deprecated">
 				<empty />
-				<optional>
-					<attribute name="replaced-with"><text /></attribute>
-				</optional>
-				<zeroOrMore><element name="desc">
-					<ref name="description" />
-				</element></zeroOrMore>
+				<interleave>
+					<zeroOrMore>
+						<element name="replaced-with">
+							<attribute name="name"> <text /> </attribute>
+						</element>
+					</zeroOrMore>
+					<zeroOrMore>
+						<element name="desc">
+							<ref name="description" />
+						</element>
+					</zeroOrMore>
+				</interleave>
 			</element></optional>
 
 			<oneOrMore> <element name="longdesc">
