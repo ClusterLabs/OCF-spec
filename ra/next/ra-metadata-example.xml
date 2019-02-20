@@ -88,11 +88,15 @@ The port number the example daemon should accept requests on.
 <content type="string" default="65535"/>
 </parameter>
 
-<!-- Example of a parameter using select. If no unique group is specified,
-     different instances of this resource type may have the same value for this
-     parameter.
+<!-- Example of a parameter that is reloadable and uses select. Reloadable
+     implies that "mode" can be changed without requiring a restart of
+     example-daemon; perhaps the resource agent writes the mode to a file
+     that example-daemon polls periodically.
+
+     If no unique group is unspecified, different instances of this
+     resource type may have the same value for this parameter.
 -->
-<parameter name="mode">
+<parameter name="mode" reloadable="1">
 <longdesc lang="en">
 The mode the example daemon should operate in. Allowed values are "dry-run" and
 "live".
@@ -171,6 +175,7 @@ Whether the example daemon should operate with foo factor
 -->
 <action name="recover" timeout="150" />
 <action name="reload"  timeout="60" />
+<action name="reload-params" timeout="10" />
 <action name="validate-all"  timeout="30" />
 
 <!-- Agents may also support arbitrary other actions as desired -->

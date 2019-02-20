@@ -337,6 +337,11 @@ an unsupported action.
     If this is not supported, it may be mapped to a stop and start action
     sequence by the RM.
 
+- `reload-params`
+
+   This should make effective any changes in instance parameters that have been
+   marked as reloadable as described in **Resource Agent Meta-Data**.
+
 - `validate-all`
 
     This should validate the instance parameters provided.
@@ -587,6 +592,11 @@ Certain meta-data XML elements warrant further explanation:
     - `required` attribute: This is a hint to RMs and other tools that every
       resource instance of this resource type must specify a value for this
       parameter.
+
+    - `reloadable` attribute: If set to 1, this is a hint to indicate that a
+      change in this attribute does not necessitate a full stop and start to
+      take effect, but can take effect via a `reload-params` action.
+
     - `deprecated` child element: When present, this element is a hint to RMs
       and other tools that the parameter is supported for backward
       compatibility only.

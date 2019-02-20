@@ -28,6 +28,9 @@
 			<optional>
 				<attribute name="required"> <ref name="boolean-values" /> </attribute>
 			</optional>
+			<optional>
+				<attribute name="reloadable"> <ref name="boolean-values" /> </attribute>
+			</optional>
 
 			<optional><element name="deprecated">
 				<empty />
