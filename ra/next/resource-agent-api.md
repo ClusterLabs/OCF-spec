@@ -66,6 +66,10 @@ is software that manages resources in a cluster.
 A _resource type_ is a name indicating the service provided by a resource. This
 name should be suitable for use as a file name.
 
+A resource type beginning with a leading dot (.) is a hint to RMs and other
+tools that the resource type should be omitted from lists provided in response
+to user queries.
+
 ### Resource Agent
 
 A _resource agent_ (RA) is a software application implementing the RA API for a
@@ -77,6 +81,10 @@ mangement tasks for resource instances.
 A _resource agent provider_ is an entity supplying one or more resource agents
 for installation on cluster hosts. Each provider should have a unique name
 suitable for use as a file system directory name.
+
+A resource agent provider beginning with a leading dot (.) is a hint to RMs and
+other tools that the resource agent provider should be omitted from lists
+provided in response to user queries.
 
 A provider may choose to supply multiple, separate collections of resource
 agents. In this case, each collection should have a unique name, and _provider_
