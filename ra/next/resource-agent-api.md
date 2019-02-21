@@ -512,21 +512,41 @@ it may not be considered a failure).
     should be returned). Note: A successful "stop" operation shall return 0,
     not 7.
 
-- `8-99`
+- `8`
 
-    Reserved for future LSB use
+    Running promoted. A "monitor" action shall return this if the service
+    supports roles, and the service is both properly active and in the role
+    attained by the "promote" action. Note: The LSB reserves this value for
+    future use in the context of init scripts, but it is used here for
+    compatibility with established practice.
 
-- `100-149`
+- `9`
 
-    Reserved for distribution use
+    Failed promoted. A "monitor" action shall return this if the service
+    supports roles, and the service is in the role attained by the "promote"
+    action, but it is not functioning properly. Note: The LSB reserves this
+    value for future use in the context of init scripts, but it is used here
+    for compatibility with established practice.
 
-- `150-199`
+- `190`
 
-    Reserved for application use
+    Degraded success. A "monitor" action may return this if the service is
+    found to be properly active, but in such a condition that future failures
+    are more likely.
 
-- `200-254`
+- `191`
 
-    Reserved
+    Degraded promoted. A "monitor" action may return this if the service is
+    found to be properly active in the promoted role, but in such a condition
+    that future failures are more likely.
+
+- Other values
+
+    This standard does not explicitly reserve any other values. In the context
+    of init scripts, the LSB standard sets aside `150-199` for application use,
+    and reserves `8-99` for LSB use, `100-149` for distribution use, and
+    `200-254`. Many shells use values `129-255` to indicate termination by a
+    signal, which could be ambiguous when a resource agent is run via a shell.
 
 
 ## Relation to the LSB
