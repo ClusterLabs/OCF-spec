@@ -17,7 +17,7 @@ URL: https://github.com/ClusterLabs/OCF-spec/blob/master/ra/1.1/resource-agent-a
     under the terms of the GNU Free Documentation License, Version 1.2 or
     any later version published by the Free Software Foundation; with no
     Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A
-    copy of the license can be found at http://www.gnu.org/licenses/fdl.txt.
+    copy of the license can be found at https://www.gnu.org/licenses/fdl.txt.
 
 ## Abstract
 
@@ -101,14 +101,14 @@ Instance parameters are the attributes which describe a given resource
 instance. It is recommended that the implementor minimize the set of
 instance parameters.
 
+An instance parameter has a given name and value. They are both case
+sensitive and must satisfy the requirements of POSIX environment
+name/value combinations.
+
 The meta data allows the RA to flag one or more instance parameters as
 `unique`. This is a hint to the RM or higher level configuration tools
 that the combination of these parameters must be unique to the given
 resource type.
-
-An instance parameter has a given name and value. They are both case
-sensitive and must satisfy the requirements of POSIX environment
-name/value combinations.
 
 
 ## API
@@ -459,26 +459,11 @@ The API tries to make it possible to have RA function both as a normal LSB
 init script and a cluster-aware RA, but this is not required functionality.
 The RAs could however use the helper functions defined for LSB init scripts.
 
-
 ## RA meta data
 
-### Format
-
-The API has the following requirements which are not fulfilled by the
-LSB way of embedding meta data into the beginning of the init scripts:
-
-- Independent of the language the RA is actually written in,
-- Extensible,
-- Structured,
-- Easy to parse from a variety of languages.
-
-This is why the API uses simple XML to describe the RA meta data. The
-DTD for this API can be found at [this location](http://www.opencf.org/standards/ra-api-1.dtd).
-
-### Semantics
-
-An example of a valid meta data output is provided in
-`ra-metadata-example.xml`.
+Structure and semantic rules pertaining meta data model are, for practical=
+reasons, covered in a separate document, [Open Clustering Framework Resource
+Agent Meta Data](resource-agent-metadata.md).
 
 ## To-do list
 

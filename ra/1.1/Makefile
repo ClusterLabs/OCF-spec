@@ -2,7 +2,7 @@
 #
 # 
 
-BASENAME=resource-agent-api
+DOCUMENTS=resource-agent-api resource-agent-metadata
 
 .PHONY: all clean
 
@@ -12,8 +12,8 @@ BASENAME=resource-agent-api
 %.pdf: %.md
 	pandoc -f markdown -o $@ $^
 
-all: $(BASENAME).pdf $(BASENAME).html
+all: $(DOCUMENTS:%=%.pdf) $(DOCUMENTS:%=%.html)
 
 clean:
-	rm -f $(BASENAME).pdf $(BASENAME).html
+	rm -f $(DOCUMENTS:%=%.pdf) $(DOCUMENTS:%=%.html)
 
