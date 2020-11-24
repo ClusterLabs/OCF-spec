@@ -5,8 +5,6 @@ AT https://github.com/ClusterLabs/OCF-spec/ TO DISCUSS CHANGES**
 
 # Open Clustering Framework Resource Agent API
 
-Editor: Lars Marowsky-Brée <lmb@suse.de>
-
 URL: https://github.com/ClusterLabs/OCF-spec/blob/master/ra/next/resource-agent-api.md
 
 
@@ -35,7 +33,8 @@ as a standard, and should be considered for discussion purposes only.
 
 ## Copyright Notice
 
-Copyright 2002,2018 Lars Marowsky-Brée
+Originally Copyright 2002,2018 Lars Marowsky-Brée
+Later changes copyright 2020 the Open Cluster Framework project contributors
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
