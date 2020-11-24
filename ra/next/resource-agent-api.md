@@ -268,15 +268,9 @@ an unsupported action.
 - `monitor`
 
     This must check the current status of the resource instance. The
-    thoroughness of the check is influenced by the weight of the check, as
-    described under **Monitor-Specific Parameters**.
-
-    An RA may have additional instance parameters which are not strictly
-    required to identify the resource instance but are useful for monitoring
-    it. In particular, RAs may support an integer _depth_ parameter specifying
-    how intrusive this check is allowed to be (which values for depth are
-    supported and what degree of intrusiveness they correspond to is left to
-    the RA).
+    thoroughness of the check may optionally be influenced by **Check Levels**.
+    Service must remain available during the monitor, regardless of check
+    level.
 
 - `meta-data`
 
@@ -344,10 +338,8 @@ an unsupported action.
 
 - `validate-all`
 
-    This should validate the instance parameters provided.
-
-    This should perform a syntax check, and if possible a semantic check, on
-    the instance parameters.
+    This should validate the instance parameters provided. The thoroughness of
+    the check may optionally be influenced by **Check Levels**.
 
 
 ### Parameter passing
@@ -410,40 +402,50 @@ Currently, the following additional environment variables are defined:
 
     The name of the resource type being operated on.
 
-#### Monitor-Specific Parameters
+#### Check Levels
 
-Resource agents may optionally support the parameters listed here when called
-with the `monitor` action.
+Resource agents may optionally support the `OCF_CHECK_LEVEL`
+environment variable when called with the `monitor` or `validate-all` actions,
+to allow requests for more or less intensive checks. Agents that support
+`OCF_CHECK_LEVEL` may choose their own default value if it is not specified.
+
+Agents that support `OCF_CHECK_LEVEL` should indicate so by specifying actions
+with `depth` attributes in agent meta-data, as described in
+**Resource Agent Meta-Data**.
 
 - `OCF_CHECK_LEVEL`
 
     - `0`
 
-        The most lightweight check possible, which should not
-        have an impact on the QoS.
+        The most lightweight check possible.
 
+        For `validate-all` actions, this should verify the internal consistency
+        (syntax and compatibility) of specified parameters, but should not
+        verify the local environment in any fashion. This allows tools to
+        validate parameters even if running on a node that will not run the
+        agent.
+
+        For `monitor` actions, this should not affect quality of service.
         Example: Check for the existence of the process.
 
     - `10`
 
-        A medium weight check, expected to be called multiple
-        times per minute, which should not have a noticeable
-        impact on the QoS.
+        A medium-weight check.
 
-        Example: Send a request for a static page to a
-        webserver.
+        For `validate-all` actions, this may verify the suitability of the
+        local environment, in addition to the internal consistency of
+        parameters.
+
+        For `monitor` actions, this should be suitable for being called
+        multiple times per minute, with minimal impact on quality of service.
+        Example: Send a request for a static page to a Web server.
 
     - `20`
 
-        A heavy weight check, called infrequently, which may
-        impact system or service performance.
-
-        Example: An internal consistency check to verify service
-        integrity.
+        A heavyweight check. This is expected to be called infrequently, and
+        may affect system or service performance.
 
     - All other numbers are reserved.
-
-Service must remain available during the monitor, regardless of level.
 
 It is recommended that if a requested level is not implemented,
 the RA should perform the next lower level supported.
@@ -641,7 +643,8 @@ Certain meta-data XML elements warrant further explanation:
       attribute values specified in this entry).
     - `depth` attribute (optional): This is a hint to RMs and other tools
       that this action of the resource agent utilizes the depth parameter with
-      this value, as described in **Resource Agent Actions**.
+      this value, as described in **Resource Agent Actions** and
+      **Check Levels**.
     - `role` attribute (optional): This is a hint to RMs and other tools
       that this action of the resource agent recognizes this role value,
       as described in **Resource Agent Actions**.
