@@ -274,7 +274,7 @@ an unsupported action.
 
 - `meta-data`
 
-    This must display the XML information described under
+    This must display the information described under
     **Resource Agent Meta-Data** via standard output.
 
 #### Optional Actions
@@ -401,6 +401,16 @@ Currently, the following additional environment variables are defined:
 * `OCF_RESOURCE_TYPE`
 
     The name of the resource type being operated on.
+
+* `OCF_OUTPUT_FORMAT`
+
+   Resource agents may optionally support multiple formats for output generated
+   by an action. The specific formats supported and values used to indicate
+   them are left to agents, but it is recommended to use "text" for readable
+   text output, "xml" for XML output, and "html" for HTML output.
+
+   The `meta-data` action must support, and default to, XML output. The default
+   for other actions is left to agents.
 
 #### Check Levels
 
@@ -571,7 +581,8 @@ meta-data can be:
 - Structured, and
 - Easy to parse from a variety of languages.
 
-RA meta-data shall conform to the XML schema formally described at
+Resource agents must at least support XML output for the `meta-data` action,
+and such XML shall conform to the XML schema formally described at
 <https://github.com/ClusterLabs/OCF-spec/blob/master/ra/next/ra-api.rng>.
 
 ### Example
