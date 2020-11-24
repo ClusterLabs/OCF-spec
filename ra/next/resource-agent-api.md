@@ -115,6 +115,12 @@ available for its resource type.
 The cluster administrator specifies the particular parameters used for each
 resource instance.
 
+### Role
+
+A _role_ is a mode of operation that a service may have, with two possible
+values: _unpromoted_ and _promoted_. Resource agent support for roles is
+optional.
+
 
 ## API
 
@@ -245,6 +251,9 @@ an unsupported action.
     `start` must return an error if the resource instance is not fully
     started.
 
+    If the resource agent supports roles, a successful start must put the
+    resource in the unpromoted role.
+
 - `stop`
 
     This must stop the resource instance. After the `stop` command has
@@ -281,9 +290,8 @@ an unsupported action.
 
 - `demote`
 
-    If the resource supports two modes of operation (_roles_), this action
-    must put the resource in the default role (the role that a start action
-    leaves the resource in).
+    If the resource agent supports roles, this action must put an active
+    resource in the unpromoted role.
 
 - `notify`
 
@@ -301,8 +309,8 @@ an unsupported action.
 
 - `promote`
 
-    If the resource supports roles, this action must put the resource in the
-    special (non-default) role.
+    If the resource agent supports roles, this action must put an active
+    resource in the promoted role.
 
 - `recover`
 
@@ -526,19 +534,19 @@ it may not be considered a failure).
 
 - `8`
 
-    Running promoted. A "monitor" action shall return this if the service
-    supports roles, and the service is both properly active and in the role
-    attained by the "promote" action. Note: The LSB reserves this value for
-    future use in the context of init scripts, but it is used here for
-    compatibility with established practice.
+    Running promoted. A "monitor" action shall return this if the
+    resource agent supports roles, and the service is both properly active and
+    in the promoted role. Note: The LSB reserves this value for future use in
+    the context of init scripts, but it is used here for compatibility with
+    established practice.
 
 - `9`
 
-    Failed promoted. A "monitor" action shall return this if the service
-    supports roles, and the service is in the role attained by the "promote"
-    action, but it is not functioning properly. Note: The LSB reserves this
-    value for future use in the context of init scripts, but it is used here
-    for compatibility with established practice.
+    Failed promoted. A "monitor" action shall return this if the resource agent
+    supports roles, and the service may be in the promoted role, but it is not
+    functioning properly. Note: The LSB reserves this value for future use in
+    the context of init scripts, but it is used here for compatibility with
+    established practice.
 
 - `190`
 
@@ -548,9 +556,10 @@ it may not be considered a failure).
 
 - `191`
 
-    Degraded promoted. A "monitor" action may return this if the service is
-    found to be properly active in the promoted role, but in such a condition
-    that future failures are more likely.
+    Degraded promoted. A "monitor" action may return this if the resource agent
+    supports roles, and the service is found to be properly active in the
+    promoted role, but in such a condition that future failures are more
+    likely.
 
 - Other values
 
@@ -657,8 +666,8 @@ Certain meta-data XML elements warrant further explanation:
       this value, as described in **Resource Agent Actions** and
       **Check Levels**.
     - `role` attribute (optional): This is a hint to RMs and other tools
-      that this action of the resource agent recognizes this role value,
-      as described in **Resource Agent Actions**.
+      that this action of the resource agent recognizes this role value
+      (promoted or unpromoted).
 
 ## Contributors
 
