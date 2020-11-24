@@ -562,9 +562,14 @@ Certain meta-data XML elements warrant further explanation:
 - `version`: This is the version of the OCF RA standard with which the RA
   claims compatibility.
 
-- `longdesc` and `shortdesc`: These are hints to tools describing the purpose
-  of the agent. They may contain any XML, but it is strongly recommended to
-  limit the content to a text string.
+- `longdesc`, `shortdesc`, and `desc`: These elements, wherever they occur in
+  meta-data, are natural-language descriptions of what is specified by their
+  parent element, intended as hints to tools for display to users. These
+  elements must contain a `lang` attribute whose value is a standard language
+  identifier ("BCP 47" <https://www.rfc-editor.org/rfc/bcp/bcp47.txt>).
+  Multiple elements with different values for `lang` may be specified, to
+  provide translations. These elements may contain any XML, but it is strongly
+  recommended to limit the content to a text string.
 
 - `parameter`:
     - `unique` attribute: This is a hint to RMs and other tools that the
@@ -574,15 +579,12 @@ Certain meta-data XML elements warrant further explanation:
     - `required` attribute: This is a hint to RMs and other tools that every
       resource instance of this resource type must specify a value for this
       parameter.
-    - `longdesc` and `shortdesc`: The same guidance applies as described above
-      when these tags appear under `resource-agent`.
     - `deprecated` child element: When present, this element is a hint to RMs
       and other tools that the parameter is supported for backward
-      compatibility only. It may contain any number of the following:
+      compatibility only.
       - `replaced-with` child element: This must contain a `name` attribute
         with the name of another parameter that should be used instead of the
-        deprecated parameter.
-      - `desc` child element: textual information about the deprecation.
+        deprecated parameter. Multiple such elements maybe specified.
 
 - `action`: Resource agents should advertise each action they support,
   including all mandatory actions, with an `action` element.
