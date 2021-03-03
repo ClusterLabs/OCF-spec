@@ -7,21 +7,53 @@
 
 	<element name="version"> <text /> </element>
 
+	<zeroOrMore><element name="longdesc">
+		<ref name="description" />
+	</element></zeroOrMore>
+
+	<zeroOrMore><element name="shortdesc">
+		<ref name="description" />
+	</element></zeroOrMore>
+
 	<element name="parameters"> <oneOrMore>
 		<element name="parameter">
 			<attribute name="name" />
 			<optional>
+				<attribute name="unique-group" />
+			</optional>
+			<optional>
+				<!-- "unique" is deprecated -->
 				<attribute name="unique"> <ref name="boolean-values" /> </attribute>
 			</optional>
+			<optional>
+				<attribute name="required"> <ref name="boolean-values" /> </attribute>
+			</optional>
+			<optional>
+				<attribute name="reloadable"> <ref name="boolean-values" /> </attribute>
+			</optional>
+
+			<optional><element name="deprecated">
+				<empty />
+				<interleave>
+					<zeroOrMore>
+						<element name="replaced-with">
+							<attribute name="name"> <text /> </attribute>
+						</element>
+					</zeroOrMore>
+					<zeroOrMore>
+						<element name="desc">
+							<ref name="description" />
+						</element>
+					</zeroOrMore>
+				</interleave>
+			</element></optional>
 
 			<oneOrMore> <element name="longdesc">
-				<attribute name="lang" />
-				<ref name="anyElement" />
+				<ref name="description" />
 			</element> </oneOrMore>
 
 			<oneOrMore> <element name="shortdesc">
-				<attribute name="lang" />
-				<ref name="anyElement" />
+				<ref name="description" />
 			</element> </oneOrMore>
 
 			<element name="content">
@@ -33,6 +65,16 @@
 							<value>integer</value>
 						</choice>
 					</attribute>
+					<group>
+						<attribute name="type">
+							<value>select</value>
+						</attribute>
+						<oneOrMore>
+							<element name="option">
+								<attribute name="value" />
+							</element>
+						</oneOrMore>
+					</group>
 				</choice>
 				<optional>
 					<attribute name="default"> <text /> </attribute>
@@ -43,27 +85,18 @@
 
 	<element name="actions"> <oneOrMore>
 		<element name="action">
-			<attribute name="name">
-				<choice>
-					<value>start</value>
-					<value>stop</value>
-					<value>recover</value>
-					<value>status</value>
-					<value>reload</value>
-					<value>meta-data</value>
-					<value>verify-all</value>
-				</choice>
-			</attribute>
+			<attribute name="name" />
 			<attribute name="timeout" />
 			<optional><attribute name="interval" /></optional>
 			<optional><attribute name="start-delay" /></optional>
 			<optional><attribute name="depth" /></optional>
+			<optional><attribute name="role" /></optional>
 		</element>
 	</oneOrMore> </element>
-	<element name="special">
+	<optional><element name="special">
 		<attribute name="tag" />
 		<ref name="anyElement" />
-	</element>
+	</element></optional>
 </element></start>
 
 <define name="boolean-values">
@@ -71,6 +104,11 @@
 		<value>0</value>
 		<value>1</value>
 	</choice>
+</define>
+
+<define name="description">
+	<attribute name="lang" />
+	<ref name="anyElement" />
 </define>
 
 <define name="any">
