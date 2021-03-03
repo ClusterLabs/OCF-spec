@@ -1,149 +1,191 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- This is example meta-data for an OCF Resource Agent. It is informational
+     only and not considered part of the standard.
+-->
 
-<!-- Root element: give the name of the Resource agent -->
-<resource-agent name="Filesystem" version="FailSafe 1.0.4">
+<!-- The root element gives the name of the resource agent, which should be
+     identical to the resource agent's file name. The name is provided here
+     because meta-data may be obtained alone, without the resource agent file.
 
-<!-- Version number of the standard this complies with -->
-<version>1.0</version>
+     The root element may optionally contain the resource agent's version,
+     which is a free-form text field.
+-->
+<resource-agent name="example-daemon" version="1.0.4">
 
+<!-- Version number of the OCF Resource Agent API this agent complies with -->
+<version>1.1</version>
+
+<!-- A description of what the agent does, suitable for showing to a user -->
 <longdesc lang="en">
-  Filesystem <b>matters</b>.
+  This resource agent manages the example daemon, which does many wondrous
+  things.
 </longdesc>
 
-<!-- List all the instance parameters the RA supports or requires. -->
+<!-- All instance parameters the RA supports must be listed in meta-data -->
 <parameters>
 
-<!-- Note that parameters flagged with 'unique' must be unique; ie no
-     other resource instance of this resource type may have the same set
-     of unique parameters.
- -->
+<!-- The combination of parameters flagged with the same "unique-group"
+     attribute should be unique. That is, no other instance of this resource
+     type should have the same set of these parameters. This is a hint to RMs
+     and other tools, which may, but are not required to, enforce it.
+-->
 
-<parameter name="Mountpoint" unique="1" required="0">
-<!-- This is the long, helpful description of what the parameter is all
-     about. A user interface might display it to the user if he asks for
-     elaborate help with an option, and it would obviously also provide
-     examples etc.
+<!-- These attributes indicate that each instance of this agent must specify a
+     value for the "config-file" parameter, and (since no other parameter uses
+     the same unique group) the value should be unique across all instances.
+-->
+<parameter name="config-file" unique-group="config-file" required="1">
 
-     You can have multiple ones with different "lang" attributes, but this is
-     not required.
+<!-- A helpful, extended description of the parameter. A user interface might
+     display it to the user when asked for help with an option. You may include
+     examples, etc.
+
+     Each parameter must have at least one longdesc, and may have multiple with
+     different "lang" attributes.
 -->
 <longdesc lang="en">
-The resource name is the directory where the filesystem will be actually
-mounted.  Please make sure it exists.
+The full path to the example daemon configuration file.
 </longdesc>
 
-<!-- The shortdesc may be displayed by the resource manager as a tooltip or
-     equivalent -->
-<shortdesc lang="en">Mountpoint</shortdesc>
+<!-- A brief description of the parameter's purpose. A user interface might
+     display it to the user as a tooltip or similar.
 
-<!-- Further definition of the content -->
-<content type="string" default="/mnt" />
+     Each parameter must have at least one shortdesc, and may have multiple with
+     different "lang" attributes.
+-->
+<shortdesc lang="en">Configuration filename</shortdesc>
+
+<!-- Allowed values, and optionally the default value. Type may be boolean,
+     string, integer, or select; with select, this must have "option" child
+     elements specifying each allowed value.
+-->
+<content type="string"/>
 
 </parameter>
 
-<parameter name="Device" unique="1">
+<!-- Since the "ip" and "port" parameters share the same unique group, the
+     combination of the two should be unique across all instances of this
+     resource type.
+
+     If required is 0 or unspecified, an instance of this resource type may
+     omit this parameter (typically, a default value will be used in that
+     case).
+-->
+<parameter name="ip" unique-group="address">
 <longdesc lang="en">
-When mounting a filesystem on a specific mountpoint, you have to specify which
-device should be mounted; this will usually be similiar to /dev/sda1 or
-/dev/volumegroup/logicalvolume when using LVM.
+The local IP address the example daemon should bind to and accept requests on.
+If omitted, the wildcard address will be used.
 </longdesc>
-<shortdesc lang="en">Device to be mounted</shortdesc>
-<content type="string" default="/dev/"/>
+<shortdesc lang="en">IP address</shortdesc>
+<content type="string" default="*"/>
 </parameter>
 
-<parameter name="FSType">
+<parameter name="port" unique-group="address">
 <longdesc lang="en">
-You should chose a journaled filesystem for the shared storage to ensure that
-the filesystem remains consistent and that it can be mounted without an
-expensive fsck run; recommendations include reiserfs, ext3 and XFS.
+The port number the example daemon should accept requests on.
 </longdesc>
-<shortdesc lang="en">Type of the filesystem</shortdesc>
-<content type="string" default="reiserfs"/>
+<shortdesc lang="en">Port number</shortdesc>
+<content type="string" default="65535"/>
 </parameter>
 
-<parameter name="mount_options">
-<longdesc lang="en">
-The mount options used for mounting a filesystem; normally this is set to
-defaults, but you may want to modify this if you require a read-only
-mount or something similar.
-</longdesc>
-<shortdesc lang="en">Mount options for this filesystem</shortdesc>
-<content type="string" default="defaults" />
-</parameter>
+<!-- Example of a parameter that is reloadable and uses select. Reloadable
+     implies that "mode" can be changed without requiring a restart of
+     example-daemon; perhaps the resource agent writes the mode to a file
+     that example-daemon polls periodically.
 
-<parameter name="fstype">
+     If no unique group is unspecified, different instances of this
+     resource type may have the same value for this parameter.
+-->
+<parameter name="mode" reloadable="1">
 <longdesc lang="en">
-The fstype options is used to specify file system type.
+The mode the example daemon should operate in. Allowed values are "dry-run" and
+"live".
 </longdesc>
-<shortdesc lang="en">Filesystem type</shortdesc>
-<content type="select" default="ext3">
-  <option value="ext3" />
-  <option value="ext4" />
+<shortdesc lang="en">Run mode</shortdesc>
+<content type="select" default="live">
+  <option value="dry-run" />
+  <option value="live" />
 </content>
 </parameter>
 
+<!-- Example of a deprecated parameter with no replacement -->
 <parameter name="archaic1">
 <deprecated />
 <longdesc lang="en">
-Some archaic parameter
+This parameter is no longer used.
 </longdesc>
-<shortdesc lang="en">Archaic parameter</shortdesc>
+<shortdesc lang="en">Unused</shortdesc>
 <content type="string" />
 </parameter>
 
-<parameter name="archaic2">
-<deprecated replaced-with="archaic1"/>
+<!-- Example of a deprecated parameter with a replacement -->
+<parameter name="cf">
+  <deprecated>
+    <replaced-with name="config-file"/>
+  </deprecated>
 <longdesc lang="en">
-Some archaic parameter
+The full path to the example daemon configuration file.
 </longdesc>
-<shortdesc lang="en">Archaic parameter</shortdesc>
+<shortdesc lang="en">Configuration filename</shortdesc>
 <content type="string" />
 </parameter>
 
-<parameter name="archaic3">
-  <deprecated replaced-with="archaic1">
+<!-- Example of a deprecated parameter with a description of why the parameter
+     was deprecated (in multiple translations).
+-->
+<parameter name="foo">
+  <deprecated>
+    <replaced-with name="mode"/>
     <desc lang="en">Don't use foo, it's bad.</desc>
     <desc lang="cs">Nepoužívej foo, sic to schytáš</desc>
   </deprecated>
 <longdesc lang="en">
-Some archaic parameter
+Whether the example daemon should operate with foo factor
 </longdesc>
-<shortdesc lang="en">Archaic parameter</shortdesc>
+<shortdesc lang="en">Foo factor</shortdesc>
 <content type="string" />
 </parameter>
 
 </parameters>
 
-<!-- List the actions supported by the RA -->
+<!-- All actions supported by the RA must be listed in meta-data. Timeouts are
+     given in seconds (or s, m, h, d suffix with the usual meanings) and should
+     be a reasonable hint how long a certain action might take in the worst
+     case.
+-->
 <actions>
-<!-- Valid actions: start, stop, recover, status, reload, verify-all
 
-     The timeout is given in seconds (or s, m, h, d postfix and their
-     usual meanings) and should be a reasonable _hint_ to the RM how
-     long a certain action might take in the worst case.
-  -->
-<action name="start"   timeout="2m30s" />
+<!-- The OCF RA API mandates support for start, stop, monitor, and meta-data
+-->
+<action name="start"   timeout="2m" />
 <action name="stop"    timeout="100" />
-<action name="recover" timeout="150" />
-<!-- In what intervals the RM should poll the RA for status; and how early
-     after the start of the RA is should start. Again, this are just
-     _defaults_ and can be overridden by the RM. -->
-<action name="status" depth="0"  timeout="20" interval="10" start-delay="1m" />
-<action name="status" role="Master" depth="10" timeout="60" interval="1h" start-delay="5m" />
-<action name="status" depth="20" timeout="2m" interval="1d" start-delay="1d" />
-<action name="reload"  timeout="60" />
 <action name="meta-data"  timeout="5" />
-<!-- As with all not mandatory actions, this one is only listed if supported
-  -->
-<action name="verify-all"  timeout="30" />
+
+<!-- Monitor actions should specify an interval, which is a hint for how often
+     the service status should be polled. Monitor may optionally support
+     multiple depths and/or roles, in which case a separate entry with a unique
+     interval should be given for each.
+-->
+<action name="monitor" depth="0"  timeout="20" interval="10" />
+<action name="monitor" depth="10" timeout="60" interval="1h" role="Master" start-delay="1m" />
+<action name="monitor" depth="20" timeout="2m" interval="1d" start-delay="2m" />
+
+<!-- The OCF RA API specifies several actions that may optionally be supported
+     but should have a specific meaning if so.
+-->
+<action name="recover" timeout="150" />
+<action name="reload"  timeout="60" />
+<action name="reload-params" timeout="10" />
+<action name="validate-all"  timeout="30" />
+
+<!-- Agents may also support arbitrary other actions as desired -->
 <action name="anything" timeout="15" />
 
 </actions>
 
-<!-- Vendor specific attributes; as the content _inside_ the special tag is
-     obviously not covered by the RA-API DTD, it will not validate, but oh
-     well...
-  -->
+<!-- Vendors may add their own custom information inside a "special" element,
+     which must have a "tag" attribute, and may contain any arbitrary content.
+-->
 <special tag="FailSafe">
 <Ordering>403</Ordering>
 </special>
