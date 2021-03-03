@@ -93,7 +93,7 @@ The port number the example daemon should accept requests on.
      example-daemon; perhaps the resource agent writes the mode to a file
      that example-daemon polls periodically.
 
-     If no unique group is unspecified, different instances of this
+     If no unique group is specified, different instances of this
      resource type may have the same value for this parameter.
 -->
 <parameter name="mode" reloadable="1">
@@ -167,7 +167,7 @@ Whether the example daemon should operate with foo factor
      interval should be given for each.
 -->
 <action name="monitor" depth="0"  timeout="20" interval="10" />
-<action name="monitor" depth="10" timeout="60" interval="1h" role="Master" start-delay="1m" />
+<action name="monitor" depth="10" timeout="60" interval="1h" role="promoted" start-delay="1m" />
 <action name="monitor" depth="20" timeout="2m" interval="1d" start-delay="2m" />
 
 <!-- The OCF RA API specifies several actions that may optionally be supported

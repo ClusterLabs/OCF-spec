@@ -34,13 +34,13 @@ as a standard, and should be considered for discussion purposes only.
 ## Copyright Notice
 
 Originally Copyright 2002,2018 Lars Marowsky-Brée
-Later changes copyright 2020 the Open Cluster Framework project contributors
+Later changes copyright 2020-2021 the Open Cluster Framework project contributors
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A
-copy of the license can be found at http://www.gnu.org/licenses/fdl.txt.
+copy of the license can be found at https://www.gnu.org/licenses/fdl.txt.
 
 
 ## Terms used in this document
@@ -74,7 +74,7 @@ to user queries.
 
 A _resource agent_ (RA) is a software application implementing the RA API for a
 particular resource type. An RA allows a resource manager to perform specific
-mangement tasks for resource instances.
+management tasks for resource instances.
 
 ### Resource Agent Provider
 
@@ -97,7 +97,7 @@ resource agents.
 Each provider also chooses the resource type names used for the resource agents
 it provides. These do not need to be unique across providers.
 
-### Resource Name 
+### Resource Name
 
 A _resource name_ is a unique identifier chosen by the cluster administrator
 to identify a particular resource instance.
@@ -109,8 +109,8 @@ describing a particular resource instance. Each parameter has a name and a
 value, which must satisfy the requirements of POSIX environment variable names
 and values.
 
-The resource agent defines the names, meaning, and allowed values of parameters
-available for its resource type.
+The resource agent defines the names, meanings, and allowed values of
+parameters available for its resource type.
 
 The cluster administrator specifies the particular parameters used for each
 resource instance.
@@ -127,7 +127,7 @@ optional.
 ### API Version Numbers
 
 The version number is of the form `x.y`, where `x` and `y` are positive
-numbers greater or equal to zero. `x` is referred to as the "major"
+numbers greater than or equal to zero. `x` is referred to as the "major"
 number, and `y` as the "minor" number.
 
 The major number must be increased if a _backwards incompatible_ change is
@@ -238,8 +238,8 @@ an unsupported action.
 #### Mandatory Actions
 
 - `start`
-  
-    This must bring the resource instance online and makes it available for
+
+    This must bring the resource instance online and make it available for
     use. It should NOT terminate before the resource instance has either
     been fully started or an error has been encountered.
 
@@ -273,7 +273,7 @@ an unsupported action.
     `stop` must succeed if the resource is already stopped.
 
     `stop` must return an error if the resource is not fully stopped.
-  
+
 - `monitor`
 
     This must check the current status of the resource instance. The
@@ -379,9 +379,9 @@ Currently, the following additional environment variables are defined:
 * `OCF_RA_VERSION_MAJOR`
 * `OCF_RA_VERSION_MINOR`
 
-    Version number of the OCF Resource Agent API. If the script does 
+    Version number of the OCF Resource Agent API. If the script does
     not support this revision, it should report an error.
-    
+
     See **API Version Numbers** for an explanation of the versioning
     scheme used. The version number is split into two numbers for ease
     of use in shell scripts.
@@ -399,8 +399,8 @@ Currently, the following additional environment variables are defined:
 * `OCF_ROOT`
 
     Referring to the root of the OCF directory hierarchy.
-    
-    Example: `OCF_ROOT=/usr/ocf`
+
+    Example: `OCF_ROOT=/usr/lib/ocf`
 
 * `OCF_RESOURCE_INSTANCE`
 
@@ -644,7 +644,7 @@ Certain meta-data XML elements warrant further explanation:
       compatibility only.
       - `replaced-with` child element: This must contain a `name` attribute
         with the name of another parameter that should be used instead of the
-        deprecated parameter. Multiple such elements maybe specified.
+        deprecated parameter. Multiple such elements may be specified.
 
 - `action`: Resource agents should advertise each action they support,
   including all mandatory actions, with an `action` element.
@@ -677,5 +677,5 @@ Certain meta-data XML elements warrant further explanation:
 - Ragnar Kjørstad <linux-ha@ragnark.vestdata.no>
 - Lars Marowsky-Brée <lmb@suse.de>
 - Alan Robertson <alanr@unix.sh>
-- Yixiong Zou <yixiong.zou@intel.com> 
+- Yixiong Zou <yixiong.zou@intel.com>
 - Ken Gaillot <kgaillot@redhat.com>
