@@ -21,9 +21,7 @@ shared by any such software.
 This is an Open Cluster Framework (OCF) document produced by ClusterLabs
 <https://clusterlabs.org>.
 
-This document is a proposed draft of the 1.1 version of the OCF RA API. It has
-not yet been adopted as a standard, and should be considered for discussion
-purposes only.
+This document describes version 1.1 of the OCF RA API standard.
 
 
 ## Copyright Notice
