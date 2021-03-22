@@ -3,14 +3,14 @@
 **JOIN THE developers@clusterlabs.org MAILING LIST AND FOLLOW PULL REQUESTS
 AT https://github.com/ClusterLabs/OCF-spec/ TO DISCUSS CHANGES**
 
-# Open Clustering Framework Resource Agent API
+# Open Cluster Framework Resource Agent API
 
 URL: https://github.com/ClusterLabs/OCF-spec/blob/master/ra/next/resource-agent-api.md
 
 
 ## Abstract
 
-The Open Clustering Framework Resource Agent (RA) API provides an abstraction
+The Open Cluster Framework Resource Agent (RA) API provides an abstraction
 layer between diverse, computer-hosted resources and diverse types of software
 managing such resources in a clustered environment.
 
