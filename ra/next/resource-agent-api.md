@@ -222,6 +222,8 @@ section as mandatory, and must advertise them as described in
 **Resource Agent Meta-Data**. RAs may support any additional actions, including
 but not limited to those listed in this section as optional.
 
+RMs are not required to support or utilize any particular actions.
+
 Actions must be idempotent. Invoking an already successfully performed action
 additional times must be successful and leave the resource instance in the
 requested state. For example, a start command given to a resource that has
@@ -329,20 +331,32 @@ an unsupported action.
 
 - `reload`
 
-    This should notify the resource instance of a configuration change external
-    to the instance parameters. It should reload the configuration of the
-    resource instance without disrupting the service.
+   Because the RA API originated as an extension to LSB init script syntax, and
+   such scripts often supported a `reload` action, it is common for RAs to
+   support one as well.
 
-    It is recommended that this action is not advertised unless it is
-    advantageous to use when compared to a stop and start action sequence.
+   If implemented, this action should notify the resource instance of a
+   configuration change external to the cluster configuration (that is, one
+   that does not involve a change to instance parameters). This notification
+   should cause changes to the resource instance's native configuration to take
+   effect without disrupting the service.
 
-    If this is not supported, it may be mapped to a stop and start action
-    sequence by the RM.
+   If this action is supported by the RM but not the agent, the RM may, but is
+   not required to, map it to a stop and start action sequence.
 
-- `reload-params`
+- `reload-agent`
 
-   This should make effective any changes in instance parameters that have been
-   marked as reloadable as described in **Resource Agent Meta-Data**.
+   This action should make effective any changes in instance parameters
+   marked as `reloadable` as described under **Resource Agent Meta-Data**.
+
+   The difference between the `reload` and `reload-agent` actions is that
+   `reload` is called after changes to the service's native configuration,
+   while `reload-agent` is called after changes to reloadable instance
+   parameters, which might or might not require interaction with the service
+   itself. Most commonly, a user would manually initiate a `reload` action
+   after modifying the service's native configuration, while an RM would
+   automatically initiate `reload-params` after the user modifies reloadable
+   instance parameters.
 
 - `validate-all`
 
@@ -636,8 +650,9 @@ Certain meta-data XML elements warrant further explanation:
       parameter.
 
     - `reloadable` attribute: If set to 1, this is a hint to indicate that a
-      change in this attribute does not necessitate a full stop and start to
-      take effect, but can take effect via a `reload-params` action.
+      change in this instance can take effect via the `reload-agent` action as
+      described under **Optional Actions**. Changes to any instance parameter
+      not marked as `reloadable` require a stop and start to take effect.
 
     - `deprecated` child element: When present, this element is a hint to RMs
       and other tools that the parameter is supported for backward
