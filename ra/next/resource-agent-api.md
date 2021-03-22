@@ -43,7 +43,7 @@ Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A
 copy of the license can be found at https://www.gnu.org/licenses/fdl.txt.
 
 
-## Terms used in this document
+## Terms Used in This Document
 
 ### Resource
 
@@ -205,7 +205,7 @@ Resource managers may choose an agent for a specific resource type name from
 the available set in any manner they choose.
 
 
-### Execution syntax
+### Execution Syntax
 
 After the RM has identified the executable to call, the RA will be
 called with the requested action as its sole argument.
@@ -350,7 +350,7 @@ an unsupported action.
     the check may optionally be influenced by **Check Levels**.
 
 
-### Parameter passing
+### Parameter Passing
 
 The instance parameters and some additional attributes are passed in via the
 environment; this has been chosen because it does not reveal the parameters to
@@ -361,7 +361,7 @@ The entire environment variable name space starting with `OCF_` is considered to
 be reserved for OCF use.
 
 
-#### Syntax for instance parameters
+#### Syntax for Instance Parameters
 
 They are directly converted to environment variables; the name is prefixed
 with `OCF_RESKEY_`.
@@ -372,7 +372,7 @@ The instance parameter `force` with the value `yes` thus becomes
 See the terms section on instance parameters for a more formal explanation.
 
 
-#### Global OCF attributes
+#### Global OCF Attributes
 
 Currently, the following additional environment variables are defined:
 
