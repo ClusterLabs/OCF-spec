@@ -143,21 +143,20 @@ certain additional feature is supported by the other party.
 ### The Resource Agent Directory
 
 Resource agents are executable files that must be made available beneath a
-common location on a host's file system, referred to as the _resource agent
+location on a host's file system, referred to as the _resource agent
 directory_.
 
 In the 1.0 version of this standard, the only acceptable location of this
 directory was `/usr/ocf/resource.d`. However, in practice, installations
 typically used the nonconforming location `/usr/lib/ocf/resource.d`.
 
-For strict compatibility with the standard, resource agents should be installed
-in the 1.0 location, and resource managers should look for agents there.
+For strict backward compatibility with the 1.0 standard, RAs should be
+available in the 1.0 location, and RMs should look for agents there.
 
-For widest compatibility, resource agents and resource managers should allow
-the installer to choose the location of the directory, which should have a
-reasonable default, and should be identical for all resource agents and
-resource managers installed on a particular host. Resource managers may also
-choose to search multiple locations.
+For widest compatibility, RAs should allow the installer to choose the location
+of the directory, and RMs should provide an installation or configuration
+option to specify the directory (and may optionally support multiple
+directories) to be searched, with a reasonable default.
 
 
 ### The Resource Agent Directory Tree
