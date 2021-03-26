@@ -3,14 +3,14 @@
 **JOIN THE developers@clusterlabs.org MAILING LIST AND FOLLOW PULL REQUESTS
 AT https://github.com/ClusterLabs/OCF-spec/ TO DISCUSS CHANGES**
 
-# Open Clustering Framework Resource Agent API
+# Open Cluster Framework Resource Agent API
 
 URL: https://github.com/ClusterLabs/OCF-spec/blob/master/ra/next/resource-agent-api.md
 
 
 ## Abstract
 
-The Open Clustering Framework Resource Agent (RA) API provides an abstraction
+The Open Cluster Framework Resource Agent (RA) API provides an abstraction
 layer between diverse, computer-hosted resources and diverse types of software
 managing such resources in a clustered environment.
 
@@ -34,16 +34,16 @@ as a standard, and should be considered for discussion purposes only.
 ## Copyright Notice
 
 Originally Copyright 2002,2018 Lars Marowsky-Brée
-Later changes copyright 2020 the Open Cluster Framework project contributors
+Later changes copyright 2020-2021 the Open Cluster Framework project contributors
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A
-copy of the license can be found at http://www.gnu.org/licenses/fdl.txt.
+copy of the license can be found at https://www.gnu.org/licenses/fdl.txt.
 
 
-## Terms used in this document
+## Terms Used in This Document
 
 ### Resource
 
@@ -74,7 +74,7 @@ to user queries.
 
 A _resource agent_ (RA) is a software application implementing the RA API for a
 particular resource type. An RA allows a resource manager to perform specific
-mangement tasks for resource instances.
+management tasks for resource instances.
 
 ### Resource Agent Provider
 
@@ -97,7 +97,7 @@ resource agents.
 Each provider also chooses the resource type names used for the resource agents
 it provides. These do not need to be unique across providers.
 
-### Resource Name 
+### Resource Name
 
 A _resource name_ is a unique identifier chosen by the cluster administrator
 to identify a particular resource instance.
@@ -109,8 +109,8 @@ describing a particular resource instance. Each parameter has a name and a
 value, which must satisfy the requirements of POSIX environment variable names
 and values.
 
-The resource agent defines the names, meaning, and allowed values of parameters
-available for its resource type.
+The resource agent defines the names, meanings, and allowed values of
+parameters available for its resource type.
 
 The cluster administrator specifies the particular parameters used for each
 resource instance.
@@ -127,7 +127,7 @@ optional.
 ### API Version Numbers
 
 The version number is of the form `x.y`, where `x` and `y` are positive
-numbers greater or equal to zero. `x` is referred to as the "major"
+numbers greater than or equal to zero. `x` is referred to as the "major"
 number, and `y` as the "minor" number.
 
 The major number must be increased if a _backwards incompatible_ change is
@@ -143,21 +143,20 @@ certain additional feature is supported by the other party.
 ### The Resource Agent Directory
 
 Resource agents are executable files that must be made available beneath a
-common location on a host's file system, referred to as the _resource agent
+location on a host's file system, referred to as the _resource agent
 directory_.
 
 In the 1.0 version of this standard, the only acceptable location of this
 directory was `/usr/ocf/resource.d`. However, in practice, installations
 typically used the nonconforming location `/usr/lib/ocf/resource.d`.
 
-For strict compatibility with the standard, resource agents should be installed
-in the 1.0 location, and resource managers should look for agents there.
+For strict backward compatibility with the 1.0 standard, RAs should be
+available in the 1.0 location, and RMs should look for agents there.
 
-For widest compatibility, resource agents and resource managers should allow
-the installer to choose the location of the directory, which should have a
-reasonable default, and should be identical for all resource agents and
-resource managers installed on a particular host. Resource managers may also
-choose to search multiple locations.
+For widest compatibility, RAs should allow the installer to choose the location
+of the directory, and RMs should provide an installation or configuration
+option to specify the directory (and may optionally support multiple
+directories) to be searched, with a reasonable default.
 
 
 ### The Resource Agent Directory Tree
@@ -205,7 +204,7 @@ Resource managers may choose an agent for a specific resource type name from
 the available set in any manner they choose.
 
 
-### Execution syntax
+### Execution Syntax
 
 After the RM has identified the executable to call, the RA will be
 called with the requested action as its sole argument.
@@ -221,6 +220,8 @@ action to be performed. RAs must be able to perform actions listed in this
 section as mandatory, and must advertise them as described in
 **Resource Agent Meta-Data**. RAs may support any additional actions, including
 but not limited to those listed in this section as optional.
+
+RMs are not required to support or utilize any particular actions.
 
 Actions must be idempotent. Invoking an already successfully performed action
 additional times must be successful and leave the resource instance in the
@@ -238,8 +239,8 @@ an unsupported action.
 #### Mandatory Actions
 
 - `start`
-  
-    This must bring the resource instance online and makes it available for
+
+    This must bring the resource instance online and make it available for
     use. It should NOT terminate before the resource instance has either
     been fully started or an error has been encountered.
 
@@ -273,7 +274,7 @@ an unsupported action.
     `stop` must succeed if the resource is already stopped.
 
     `stop` must return an error if the resource is not fully stopped.
-  
+
 - `monitor`
 
     This must check the current status of the resource instance. The
@@ -329,20 +330,32 @@ an unsupported action.
 
 - `reload`
 
-    This should notify the resource instance of a configuration change external
-    to the instance parameters. It should reload the configuration of the
-    resource instance without disrupting the service.
+   Because the RA API originated as an extension to LSB init script syntax, and
+   such scripts often supported a `reload` action, it is common for RAs to
+   support one as well.
 
-    It is recommended that this action is not advertised unless it is
-    advantageous to use when compared to a stop and start action sequence.
+   If implemented, this action should notify the resource instance of a
+   configuration change external to the cluster configuration (that is, one
+   that does not involve a change to instance parameters). This notification
+   should cause changes to the resource instance's native configuration to take
+   effect without disrupting the service.
 
-    If this is not supported, it may be mapped to a stop and start action
-    sequence by the RM.
+   If this action is supported by the RM but not the agent, the RM may, but is
+   not required to, map it to a stop and start action sequence.
 
-- `reload-params`
+- `reload-agent`
 
-   This should make effective any changes in instance parameters that have been
-   marked as reloadable as described in **Resource Agent Meta-Data**.
+   This action should make effective any changes in instance parameters
+   marked as `reloadable` as described under **Resource Agent Meta-Data**.
+
+   The difference between the `reload` and `reload-agent` actions is that
+   `reload` is called after changes to the service's native configuration,
+   while `reload-agent` is called after changes to reloadable instance
+   parameters, which might or might not require interaction with the service
+   itself. Most commonly, a user would manually initiate a `reload` action
+   after modifying the service's native configuration, while an RM would
+   automatically initiate `reload-params` after the user modifies reloadable
+   instance parameters.
 
 - `validate-all`
 
@@ -350,7 +363,7 @@ an unsupported action.
     the check may optionally be influenced by **Check Levels**.
 
 
-### Parameter passing
+### Parameter Passing
 
 The instance parameters and some additional attributes are passed in via the
 environment; this has been chosen because it does not reveal the parameters to
@@ -361,7 +374,7 @@ The entire environment variable name space starting with `OCF_` is considered to
 be reserved for OCF use.
 
 
-#### Syntax for instance parameters
+#### Syntax for Instance Parameters
 
 They are directly converted to environment variables; the name is prefixed
 with `OCF_RESKEY_`.
@@ -372,16 +385,16 @@ The instance parameter `force` with the value `yes` thus becomes
 See the terms section on instance parameters for a more formal explanation.
 
 
-#### Global OCF attributes
+#### Global OCF Attributes
 
 Currently, the following additional environment variables are defined:
 
 * `OCF_RA_VERSION_MAJOR`
 * `OCF_RA_VERSION_MINOR`
 
-    Version number of the OCF Resource Agent API. If the script does 
+    Version number of the OCF Resource Agent API. If the script does
     not support this revision, it should report an error.
-    
+
     See **API Version Numbers** for an explanation of the versioning
     scheme used. The version number is split into two numbers for ease
     of use in shell scripts.
@@ -399,8 +412,8 @@ Currently, the following additional environment variables are defined:
 * `OCF_ROOT`
 
     Referring to the root of the OCF directory hierarchy.
-    
-    Example: `OCF_ROOT=/usr/ocf`
+
+    Example: `OCF_ROOT=/usr/lib/ocf`
 
 * `OCF_RESOURCE_INSTANCE`
 
@@ -636,15 +649,16 @@ Certain meta-data XML elements warrant further explanation:
       parameter.
 
     - `reloadable` attribute: If set to 1, this is a hint to indicate that a
-      change in this attribute does not necessitate a full stop and start to
-      take effect, but can take effect via a `reload-params` action.
+      change in this instance can take effect via the `reload-agent` action as
+      described under **Optional Actions**. Changes to any instance parameter
+      not marked as `reloadable` require a stop and start to take effect.
 
     - `deprecated` child element: When present, this element is a hint to RMs
       and other tools that the parameter is supported for backward
       compatibility only.
       - `replaced-with` child element: This must contain a `name` attribute
         with the name of another parameter that should be used instead of the
-        deprecated parameter. Multiple such elements maybe specified.
+        deprecated parameter. Multiple such elements may be specified.
 
 - `action`: Resource agents should advertise each action they support,
   including all mandatory actions, with an `action` element.
@@ -677,5 +691,5 @@ Certain meta-data XML elements warrant further explanation:
 - Ragnar Kjørstad <linux-ha@ragnark.vestdata.no>
 - Lars Marowsky-Brée <lmb@suse.de>
 - Alan Robertson <alanr@unix.sh>
-- Yixiong Zou <yixiong.zou@intel.com> 
+- Yixiong Zou <yixiong.zou@intel.com>
 - Ken Gaillot <kgaillot@redhat.com>

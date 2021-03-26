@@ -88,12 +88,16 @@ The port number the example daemon should accept requests on.
 <content type="string" default="65535"/>
 </parameter>
 
-<!-- Example of a parameter that is reloadable and uses select. Reloadable
-     implies that "mode" can be changed without requiring a restart of
-     example-daemon; perhaps the resource agent writes the mode to a file
-     that example-daemon polls periodically.
+<!-- Example of a parameter that is reloadable and uses select. Marking "mode"
+     as reloadable implies that a change in it can be made effective by calling
+     the agent's "reload-agent" action, without requiring a restart of
+     example-daemon. As an example, perhaps the "reload-agent" action contacts
+     the daemon via a REST API to change its mode. This constrasts with the
+     "reload" action, which is meant to reload the service itself, usually
+     after changes to its native configuration (for example, many daemons will
+     reload a configuration file after receiving a signal).
 
-     If no unique group is unspecified, different instances of this
+     If no unique group is specified, different instances of this
      resource type may have the same value for this parameter.
 -->
 <parameter name="mode" reloadable="1">
@@ -167,7 +171,7 @@ Whether the example daemon should operate with foo factor
      interval should be given for each.
 -->
 <action name="monitor" depth="0"  timeout="20" interval="10" />
-<action name="monitor" depth="10" timeout="60" interval="1h" role="Master" start-delay="1m" />
+<action name="monitor" depth="10" timeout="60" interval="1h" role="promoted" start-delay="1m" />
 <action name="monitor" depth="20" timeout="2m" interval="1d" start-delay="2m" />
 
 <!-- The OCF RA API specifies several actions that may optionally be supported
@@ -175,7 +179,7 @@ Whether the example daemon should operate with foo factor
 -->
 <action name="recover" timeout="150" />
 <action name="reload"  timeout="60" />
-<action name="reload-params" timeout="10" />
+<action name="reload-agent" timeout="10" />
 <action name="validate-all"  timeout="30" />
 
 <!-- Agents may also support arbitrary other actions as desired -->
