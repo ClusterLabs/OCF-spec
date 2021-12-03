@@ -2,7 +2,7 @@
 
 Editor: Lars Marowsky-Brée <lmb@suse.de>
 
-URL: http://www.opencf.org/standards/resource-agent-api.html
+URL: https://github.com/ClusterLabs/OCF-spec/blob/master/ra/1.0/resource-agent-api.md
 
 ## License
 
@@ -46,7 +46,9 @@ respective standards.
 
 ### API version described
 
-This document currently describes version 1.0 of the API. 
+There is an updated version (1.1) [available here](https://github.com/ClusterLabs/OCF-spec/blob/master/ra/1.1/resource-agent-api.md).
+
+This document currently describes version 1.0 of the API.
 
 
 ## Terms used in this document
@@ -468,7 +470,7 @@ LSB way of embedding meta data into the beginning of the init scripts:
 - Easy to parse from a variety of languages.
 
 This is why the API uses simple XML to describe the RA meta data. The
-DTD for this API can be found at [this location](http://www.opencf.org/standards/ra-api-1.dtd).
+RNG for this API can be found at [this location](https://raw.githubusercontent.com/ClusterLabs/OCF-spec/master/ra/1.0/ra-api.rng)
 
 ### Semantics
 
